@@ -153,7 +153,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
           <div className="flex items-center gap-2">
             
             {/* --- Botões Principais (Alta Frequência) --- */}
-            {lastTurnState.ui.buttons.filter(b => ['sheet', 'equipment', 'invspace', 'companions', 'relations', 'missions'].includes(b.id)).map(button => (
+            {lastTurnState.ui.buttons.filter(b => ['sheet', 'equipment', 'invspace', 'companions', 'relations', 'quests'].includes(b.id)).map(button => (
               <button 
                 key={button.id} 
                 onClick={() => handleHeaderClick(button)} 
