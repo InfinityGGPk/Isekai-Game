@@ -50,6 +50,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
   const [isRelationshipsOpen, setIsRelationshipsOpen] = useState(false);
   const [isImplantsScreenOpen, setIsImplantsScreenOpen] = useState(false);
   const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
+  const [isGameMenuOpen, setGameMenuOpen] = useState(false);
+  const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   
   const lastTurnState = gameState;
@@ -125,22 +127,80 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
     <div className="flex h-screen text-slate-300">
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden">
-        <header className="flex justify-between items-center pb-4">
+        <header className="flex justify-between items-center pb-4 border-b border-slate-800">
+          {/* Título do Jogo */}
           <h1 className="text-3xl font-bold text-amber-400 font-cinzel tracking-wider">ISEKAI</h1>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {lastTurnState.ui.buttons.map(button => {
-              const baseStyle = "px-3 py-1 rounded-md transition-colors text-sm font-semibold border";
-              let style = `${baseStyle} bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500`;
-              if (button.id === 'sheet' || button.id === 'equipment' || button.id === 'companions' || button.id === 'relations' || button.id === 'quests') style = `${baseStyle} bg-amber-600/20 border-amber-800/80 text-amber-300 hover:bg-amber-500/30 hover:border-amber-700`;
-              if (button.id === 'implants') style = `${baseStyle} bg-cyan-600/20 border-cyan-800/80 text-cyan-300 hover:bg-cyan-500/30 hover:border-cyan-700`;
-              if (button.id === 'autosave' && button.checked) style += ` bg-green-600/20 border-green-800/80 text-green-300 hover:bg-green-500/30 hover:border-green-700`;
 
-              return (
-                  <button key={button.id} onClick={() => handleHeaderClick(button)} className={style}>
-                    {button.label} {button.id === 'autosave' ? (button.checked ? ' (ON)' : ' (OFF)') : ''}
-                  </button>
-              );
-            })}
+          {/* Menus e Botões */}
+          <div className="flex items-center gap-2">
+            
+            {/* --- Botões Principais (Alta Frequência) --- */}
+            {lastTurnState.ui.buttons.filter(b => ['sheet', 'equipment', 'companions', 'relations', 'missions'].includes(b.id)).map(button => (
+              <button 
+                key={button.id} 
+                onClick={() => handleHeaderClick(button)} 
+                className="px-4 py-2 rounded-md transition-colors text-sm font-semibold border bg-amber-600/20 border-amber-800/80 text-amber-300 hover:bg-amber-500/30 hover:border-amber-700"
+              >
+                {button.label}
+              </button>
+            ))}
+            {lastTurnState.ui.buttons.filter(b => b.id === 'implants').map(button => (
+              <button 
+                key={button.id} 
+                onClick={() => handleHeaderClick(button)} 
+                className="px-4 py-2 rounded-md transition-colors text-sm font-semibold border bg-cyan-600/20 border-cyan-800/80 text-cyan-300 hover:bg-cyan-500/30 hover:border-cyan-700"
+              >
+                {button.label}
+              </button>
+            ))}
+
+
+            {/* --- Menu Dropdown de Jogo (Ações de Sistema) --- */}
+            <div className="relative">
+              <button 
+                onClick={() => setGameMenuOpen(!isGameMenuOpen)}
+                className="px-4 py-2 rounded-md transition-colors text-sm font-semibold border bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500"
+              >
+                Jogo
+              </button>
+              {isGameMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-600 rounded-md shadow-lg z-20">
+                  {lastTurnState.ui.buttons.filter(b => ['new', 'save', 'load', 'export', 'import'].includes(b.id)).map(button => (
+                     <button 
+                        key={button.id} 
+                        onClick={() => { handleHeaderClick(button); setGameMenuOpen(false); }}
+                        className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                      >
+                       {button.label}
+                     </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* --- Menu Dropdown de Configurações (Outras Ações) --- */}
+            <div className="relative">
+                <button 
+                    onClick={() => setSettingsMenuOpen(!isSettingsMenuOpen)}
+                    className="px-3 py-2 rounded-md transition-colors text-sm font-semibold border bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500"
+                >
+                    {/* Sugestão: Substitua por um ícone de engrenagem */}
+                    ⚙️
+                </button>
+                {isSettingsMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-600 rounded-md shadow-lg z-20">
+                        {lastTurnState.ui.buttons.filter(b => ['invspace', 'json', 'autosave'].includes(b.id)).map(button => (
+                            <button 
+                                key={button.id} 
+                                onClick={() => { handleHeaderClick(button); if(button.id !== 'autosave') setSettingsMenuOpen(false); }}
+                                className={`block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 ${button.id === 'autosave' && button.checked ? 'text-green-400' : ''}`}
+                            >
+                                {button.label} {button.id === 'autosave' ? (button.checked ? ' (ON)' : ' (OFF)') : ''}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
           </div>
         </header>
 
