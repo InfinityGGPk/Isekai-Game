@@ -53,12 +53,30 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
   const [isGameMenuOpen, setGameMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const gameMenuRef = useRef<HTMLDivElement>(null);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
   
   const lastTurnState = gameState;
 
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [turnHistory]);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (gameMenuRef.current && !gameMenuRef.current.contains(event.target as Node)) {
+        setGameMenuOpen(false);
+      }
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
+        setSettingsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +131,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
       .replace(/^\* (.*$)/gm, '<li class="ml-4 list-disc">$1</li>');
   
     // Highlight level-up messages
-    const levelUpRegex = /([^<]*?(?:atingiu o nível|aumentou para|atingiu o nível) \d+!?)/gi;
+    const levelUpRegex = /(VOCÊ ATINGIU O NÍVEL \d+!|\[\w+\] aumentou para \d+!|\[\w+\] atingiu o nível \d+!)/gi;
     formattedText = formattedText.replace(levelUpRegex, '<strong class="text-amber-400 font-bold">$1</strong>');
   
     return formattedText;
@@ -156,9 +174,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
 
 
             {/* --- Menu Dropdown de Jogo (Ações de Sistema) --- */}
-            <div className="relative">
+            <div className="relative" ref={gameMenuRef}>
               <button 
-                onClick={() => setGameMenuOpen(!isGameMenuOpen)}
+                onClick={() => setGameMenuOpen(prev => !prev)}
                 className="px-4 py-2 rounded-md transition-colors text-sm font-semibold border bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500"
               >
                 Jogo
@@ -179,9 +197,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
             </div>
 
             {/* --- Menu Dropdown de Configurações (Outras Ações) --- */}
-            <div className="relative">
+            <div className="relative" ref={settingsMenuRef}>
                 <button 
-                    onClick={() => setSettingsMenuOpen(!isSettingsMenuOpen)}
+                    onClick={() => setSettingsMenuOpen(prev => !prev)}
                     className="px-3 py-2 rounded-md transition-colors text-sm font-semibold border bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500"
                 >
                     {/* Sugestão: Substitua por um ícone de engrenagem */}
