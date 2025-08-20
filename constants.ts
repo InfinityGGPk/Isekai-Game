@@ -2,25 +2,36 @@
 import { GameState, PlayerAttributes, Equipment } from './types';
 
 export const SOCIAL_ORIGINS = {
-  "Nobres e Elite": [
-    { id: 'origem_real', name: "Herdeiro Real", description: "Nascido da família governante. Destino marcado por política e intrigas." },
-    { id: 'origem_clero', name: "Clero Nobre", description: "Família ligada à igreja ou ordem sagrada. Criado entre dogmas e poder religioso." },
-    { id: 'origem_mercador', name: "Comerciante Rico", description: "Nascido em uma família mercante de sucesso. Cresceu cercado de moedas e contatos." },
+  "Nobreza de Sangue": [
+    { id: 'origem_real', name: "Príncipe/Princesa Herdeiro(a)", description: "Você é o próximo na linha de sucessão de um reino. Criado em meio ao poder, luxo e conspirações mortais." },
+    { id: 'origem_ducado', name: "Herdeiro(a) de um Ducado", description: "Sua família governa uma das províncias mais poderosas do reino, quase um reino por si só." },
+    { id: 'origem_condado', name: "Filho/Filha de um Conde/Condessa", description: "Você vem de uma família que administra um vasto território, responsável por cidades e exércitos." },
+    { id: 'origem_baronato', name: "Nobre de um Baronato", description: "Sua família possui terras e um castelo, jurando lealdade a um nobre maior, mas com poder local absoluto." },
+    { id: 'origem_nobreza_caida', name: "Nobreza Caída", description: "Sua linhagem já foi grandiosa, mas hoje restam apenas o nome e as dívidas. Você busca restaurar sua honra." },
   ],
-  "Classe Média / Povo": [
-    { id: 'origem_artesao', name: "Artesão Aprendiz", description: "Filho de ferreiro, alfaiate ou carpinteiro. Cresceu em oficinas." },
-    { id: 'origem_batedor', name: "Batedor de Estradas", description: "Família de guardas de caravanas ou caçadores. Viveu viajando." },
-    { id: 'origem_porto', name: "Criança do Porto", description: "Cresceu em cidade costeira. Acostumado a navios, contrabando e histórias de marinheiros." },
+  "Classes Privilegiadas": [
+    { id: 'origem_alto_clero', name: "Alto Clero", description: "Criado nos altos escalões da igreja principal. Você entende tanto de dogmas quanto de política." },
+    { id: 'origem_magocrata', name: "Família Magocrata", description: "Sua linhagem é famosa por produzir magos poderosos. Você cresceu em uma torre arcana." },
+    { id: 'origem_mercador_magnata', name: "Magnata Mercante", description: "Sua família não tem sangue nobre, mas possui mais ouro e influência que muitos barões." },
+    { id: 'origem_erudito_recluso', name: "Erudito Recluso", description: "Você passou a vida em uma biblioteca ou mosteiro, com acesso a conhecimentos raros e esquecidos pelo mundo." },
   ],
-  "Marginais e Alternativos": [
-    { id: 'origem_mendigo', name: "Mendigo das Ruas", description: "Criado na miséria. Sobreviveu apenas com astúcia." },
-    { id: 'origem_criminoso', name: "Filho de Criminosos", description: "Seus pais faziam parte de guildas ou bandos fora da lei." },
-    { id: 'origem_gladiador', name: "Gladiador Nascente", description: "Desde pequeno exposto a arenas e combates forçados." },
+  "O Povo Comum": [
+    { id: 'origem_artesao', name: "Aprendiz de Artesão", description: "Filho de um mestre ferreiro, alquimista ou outro ofício. Sua vida foi na oficina." },
+    { id: 'origem_guarda', name: "Filho(a) de Guarda", description: "Você cresceu no quartel, entre soldados, disciplina e o som de aço." },
+    { id: 'origem_porto', name: "Criança do Porto", description: "Acostumado a navios, estrangeiros, contrabando e as histórias mais fantásticas (e verdadeiras)." },
+    { id: 'origem_campones', name: "Camponês(a)", description: "Você vem do campo. Entende da terra, das estações e do trabalho duro mais do que ninguém." },
   ],
-  "Exóticos": [
-    { id: 'origem_adotado', name: "Adotado por Outra Raça", description: "Humanos criados entre elfos, anões, orcs ou bestiais." },
-    { id: 'origem_marcado', name: "Marcado pelo Sobrenatural", description: "Nascido com ligação a espíritos, magia caótica ou uma maldição antiga." },
-    { id: 'origem_reencarnado', name: "Reencarnado Anônimo", description: "Você “caiu” nesse mundo em uma família qualquer, mas guarda memórias fragmentadas da vida passada." },
+  "Os Marginalizados": [
+    { id: 'origem_tribal', name: "Membro de Tribo Remota", description: "Você nasceu fora das 'terras civilizadas', em uma tribo com suas próprias leis e deuses." },
+    { id: 'origem_criminoso', name: "Herdeiro(a) de Guilda Criminosa", description: "Seus pais comandavam uma guilda de ladrões ou assassinos. A lei sempre foi sua inimiga." },
+    { id: 'origem_sobrevivente', name: "Sobrevivente de Vila Destruída", description: "Sua terra natal foi aniquilada por monstros ou guerra. Você começou com nada além de sua própria resiliência." },
+    { id: 'origem_gladiador_escravo', name: "Gladiador(a) Escravo(a)", description: "Você não conheceu nada além da areia da arena e da vontade de sobreviver para lutar mais um dia." },
+  ],
+   "Exóticos e Amaldiçoados": [
+    { id: 'origem_adotado', name: "Adotado por Outra Raça", description: "Um humano criado entre elfos, anões ou orcs, absorvendo uma cultura completamente diferente." },
+    { id: 'origem_marcado', name: "Marcado por uma Entidade", description: "Um espírito, demônio ou ser ancestral marcou você ao nascer, para o bem ou para o mal." },
+    { id: 'origem_reencarnado', name: "Reencarnado Anônimo", description: "Você “caiu” nesse mundo em uma família qualquer, mas guarda memórias de uma vida com tecnologia avançada." },
+    { id: 'origem_experimento', name: "Experimento de Alquimista", description: "Você não nasceu, foi criado. Um homúnculo ou um ser modificado em busca de seu propósito e humanidade." },
   ]
 };
 
@@ -185,6 +196,29 @@ A origem social e a idade do personagem são escolhas CRÍTICAS que definem o in
   - Modificadores: -25 Força, -25 Vigor, +30 Inteligência, +30 Vontade.
 
 Incorpore os efeitos da idade na narrativa (ex: um idoso resolve um enigma com facilidade; uma criança passa despercebida).
+
+--- ADDENDUM — COERÊNCIA DE ORIGEM E RANK INICIAL (V2) ---
+Esta regra é mandatória para o primeiro turno do jogo, após a criação do personagem. O Rank inicial (`player.patente`) DEVE refletir a Origem Social (`player.origem`).
+
+* **Mapeamento Obrigatório:**
+    * **Nobreza de Sangue:**
+        * 'origem_real': Patente "Príncipe Herdeiro"
+        * 'origem_ducado': Patente "Jovem Duque/Duquesa"
+        * 'origem_condado': Patente "Nobre de Condado"
+        * 'origem_baronato': Patente "Nobre de Baronato"
+        * 'origem_nobreza_caida': Patente "Nobre Exilado"
+    * **Classes Privilegiadas:**
+        * 'origem_alto_clero': Patente "Acólito de Elite"
+        * 'origem_magocrata': Patente "Aprendiz Arcano"
+        * 'origem_mercador_magnata': Patente "Herdeiro Mercante"
+        * 'origem_erudito_recluso': Patente "Erudito"
+    * **Os Marginalizados:**
+        * 'origem_criminoso': Patente "Fora da Lei"
+        * 'origem_gladiador_escravo': Patente "Gladiador Marcado"
+        * 'origem_tribal': Patente "Guerreiro Tribal"
+    * **Padrão (Plebeu):** Para todas as outras origens, a patente inicial é "Plebeu".
+
+* **Aplicação:** No primeiro turno, ajuste a `patente` e a narrativa inicial para refletir esta escolha.
 
 --- ADDENDUM — FICHA E EQUIPAMENTOS (PRIORIDADE MÁXIMA) ---
 Prioridade: substitui regras anteriores de equipamento. PC continua em modo poderoso (sem “nerf em cena”); NPCs têm limitações.
