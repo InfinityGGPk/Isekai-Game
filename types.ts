@@ -48,6 +48,13 @@ export interface Skill {
   xp_next: number;
 }
 
+export interface Condition {
+  id: string;
+  nome: string;
+  descricao: string;
+  duracao: number | string;
+}
+
 export interface Item {
   id: string;
   nome: string;
@@ -178,7 +185,7 @@ export interface PlayerState {
   sintonias: { usadas: number; max: number };
   moedas: { cobre: number; prata: number; ouro: number };
   pericias: Record<string, number>;
-  condicoes: string[];
+  condicoes: (string | Condition)[];
   fama: Record<string, number>;
   patente: string;
   títulos: string[];
@@ -373,11 +380,33 @@ export interface Enemy {
   stamina_max?: number;
   mana?: number;
   mana_max?: number;
-  condicoes: string[];
+  condicoes: (string | Condition)[];
 }
 
 export interface CombatState {
   enemies: Enemy[];
+}
+
+export interface QuestObjective {
+  id: string;
+  description: string;
+  status: 'active' | 'completed' | 'failed';
+  isHidden?: boolean;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  giver: string;
+  status: 'active' | 'completed' | 'failed';
+  objectives: QuestObjective[];
+  rewards?: {
+    xp?: number;
+    moedas?: { ouro?: number; prata?: number; cobre?: number };
+    itens?: Item[];
+    reputacao?: { faccao: string; valor: number }[];
+  };
 }
 
 export interface GameState {
@@ -390,9 +419,9 @@ export interface GameState {
   construcoes: any[];
   caravanas: any[];
   reino: KingdomState;
-  quests: any[];
+  quests: Quest[];
   bestiarioVisto: string[];
-  flags: Record<string, boolean>;
+  flags: Record<string, any>;
   ui: UIState;
   rules: GameRules;
   combat: CombatState | null;

@@ -10,6 +10,7 @@ import CompanionsScreen from './CompanionsScreen';
 import CombatStatusPanel from './CombatStatusPanel';
 import RelationshipsScreen from './RelationshipsScreen';
 import ImplantsScreen from './ImplantsScreen';
+import QuestLog from './QuestLog';
 
 interface GameScreenProps {
   gameState: GameState | null;
@@ -48,6 +49,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
   const [isCompanionsOpen, setIsCompanionsOpen] = useState(false);
   const [isRelationshipsOpen, setIsRelationshipsOpen] = useState(false);
   const [isImplantsScreenOpen, setIsImplantsScreenOpen] = useState(false);
+  const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   
   const lastTurnState = gameState;
@@ -93,6 +95,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
         case 'relations':
             setIsRelationshipsOpen(true);
             break;
+        case 'quests':
+            setIsQuestLogOpen(true);
+            break;
         default:
             onUiAction(button);
             break;
@@ -126,7 +131,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
             {lastTurnState.ui.buttons.map(button => {
               const baseStyle = "px-3 py-1 rounded-md transition-colors text-sm font-semibold border";
               let style = `${baseStyle} bg-slate-800/50 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500`;
-              if (button.id === 'sheet' || button.id === 'equipment' || button.id === 'companions' || button.id === 'relations') style = `${baseStyle} bg-amber-600/20 border-amber-800/80 text-amber-300 hover:bg-amber-500/30 hover:border-amber-700`;
+              if (button.id === 'sheet' || button.id === 'equipment' || button.id === 'companions' || button.id === 'relations' || button.id === 'quests') style = `${baseStyle} bg-amber-600/20 border-amber-800/80 text-amber-300 hover:bg-amber-500/30 hover:border-amber-700`;
               if (button.id === 'implants') style = `${baseStyle} bg-cyan-600/20 border-cyan-800/80 text-cyan-300 hover:bg-cyan-500/30 hover:border-cyan-700`;
               if (button.id === 'autosave' && button.checked) style += ` bg-green-600/20 border-green-800/80 text-green-300 hover:bg-green-500/30 hover:border-green-700`;
 
@@ -208,6 +213,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
       {isCompanionsOpen && <CompanionsScreen companions={lastTurnState.companheiros} onClose={() => setIsCompanionsOpen(false)} onSendInput={onSendInput} />}
       {isRelationshipsOpen && <RelationshipsScreen player={lastTurnState.player} onClose={() => setIsRelationshipsOpen(false)} />}
       {isImplantsScreenOpen && <ImplantsScreen player={lastTurnState.player} onClose={() => setIsImplantsScreenOpen(false)} onSendInput={onSendInput} />}
+      {isQuestLogOpen && <QuestLog quests={lastTurnState.quests} onClose={() => setIsQuestLogOpen(false)} />}
     </div>
   );
 };

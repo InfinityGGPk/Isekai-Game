@@ -172,11 +172,26 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                 <h3 className="text-xl font-bold text-amber-300 mb-2 font-cinzel">Condições</h3>
                 {player.condicoes.length > 0 ? (
                    <ul className="space-y-1">
-                    {player.condicoes.map(cond => (
-                      <li key={cond} className="bg-red-900/50 text-red-300 px-2 py-1 rounded">
-                        {cond}
-                      </li>
-                    ))}
+                    {player.condicoes.map((cond, index) => {
+                       if (typeof cond === 'string') {
+                           return (
+                               <li key={`${cond}-${index}`} className="bg-red-900/50 text-red-300 px-2 py-1 rounded">
+                                   {cond}
+                               </li>
+                           );
+                       }
+                       const condition = cond as { id?: string, nome: string, descricao?: string, duracao?: string | number };
+                       const key = condition.id || `${condition.nome}-${index}`;
+                       const tooltipText = `${condition.descricao || 'Sem descrição.'}${condition.duracao ? ` (Duração: ${condition.duracao})` : ''}`;
+                       
+                       return (
+                         <Tooltip key={key} text={tooltipText}>
+                            <li className="bg-red-900/50 text-red-300 px-2 py-1 rounded cursor-help">
+                             {condition.nome}
+                           </li>
+                         </Tooltip>
+                       );
+                    })}
                   </ul>
                 ) : <p className="text-slate-400">Nenhuma condição ativa.</p>}
               </div>

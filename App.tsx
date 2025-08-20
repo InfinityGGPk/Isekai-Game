@@ -67,18 +67,26 @@ const App: React.FC = () => {
             savedGameState.player.sintonias = INITIAL_GAME_STATE.player.sintonias;
         }
         
-        // Migration from 'harem' to 'circuloIntimo' for saves that have the old structure
         if ((savedGameState.player as any).harem && !savedGameState.player.circuloIntimo) {
             console.log("Migrating save file: renaming 'harem' to 'circuloIntimo'.");
             savedGameState.player.circuloIntimo = (savedGameState.player as any).harem;
             delete (savedGameState.player as any).harem;
         }
 
-        // Upgrade for very old saves missing the relationship system entirely
         if (!savedGameState.player.relacionamentos) {
             console.log("Old save file detected. Upgrading with Relationships system.");
             savedGameState.player.relacionamentos = INITIAL_GAME_STATE.player.relacionamentos;
             savedGameState.player.circuloIntimo = INITIAL_GAME_STATE.player.circuloIntimo;
+        }
+
+        if (!savedGameState.quests) {
+            console.log("Old save file detected. Upgrading with Quest system.");
+            savedGameState.quests = [];
+        }
+        
+        if (typeof savedGameState.flags !== 'object' || savedGameState.flags === null) {
+            console.log("Old save file detected. Upgrading flags system.");
+            savedGameState.flags = { tutorial: true };
         }
         // -------------------------
 
@@ -156,18 +164,26 @@ const App: React.FC = () => {
                     importedGameState.player.sintonias = INITIAL_GAME_STATE.player.sintonias;
                 }
 
-                // Migration from 'harem' to 'circuloIntimo' for saves that have the old structure
                 if ((importedGameState.player as any).harem && !importedGameState.player.circuloIntimo) {
                     console.log("Migrating imported save file: renaming 'harem' to 'circuloIntimo'.");
                     importedGameState.player.circuloIntimo = (importedGameState.player as any).harem;
                     delete (importedGameState.player as any).harem;
                 }
 
-                // Upgrade for very old saves missing the relationship system entirely
                 if (!importedGameState.player.relacionamentos) {
                     console.log("Old imported save file detected. Upgrading with Relationships system.");
                     importedGameState.player.relacionamentos = INITIAL_GAME_STATE.player.relacionamentos;
                     importedGameState.player.circuloIntimo = INITIAL_GAME_STATE.player.circuloIntimo;
+                }
+                
+                if (!importedGameState.quests) {
+                    console.log("Old imported save file detected. Upgrading with Quest system.");
+                    importedGameState.quests = [];
+                }
+
+                if (typeof importedGameState.flags !== 'object' || importedGameState.flags === null) {
+                    console.log("Old imported save file detected. Upgrading flags system.");
+                    importedGameState.flags = { tutorial: true };
                 }
                 // ------------------------------------
 

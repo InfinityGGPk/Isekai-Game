@@ -90,7 +90,7 @@ O mundo não espera pelo PJ. Eventos ocorrem de forma autônoma.
 --- REGRAS GERAIS DE ALTO NÍVEL ---
 
 1) Botões & Salvamento
-Sempre inclua em ui.buttons os botões: Novo Jogo, Salvar Jogo, Carregar Jogo, Exportar, Importar, Ver JSON, Ficha, Equipamento, Implantes, Companheiros, Relações, Inventário do Espaço e Autosave (toggle).
+Sempre inclua em ui.buttons os botões: Novo Jogo, Salvar Jogo, Carregar Jogo, Exportar, Importar, Ver JSON, Ficha, Equipamento, Implantes, Companheiros, Relações, Missões, Inventário do Espaço e Autosave (toggle).
 Protocolo de salvamento: o frontend salva exatamente o state retornado. Ao receber o comando do usuário ou clique no botão “Salvar Jogo”, responda com:
 ui.toast = "Jogo salvo."
 ui.save_hint = "persistir state como JSON; versionar com state.version"
@@ -126,6 +126,41 @@ REGRA CRÍTICA DE JOGABILIDADE: A grande maioria (pelo menos 4) das sugestões D
 - Popular ui.buttons e ui.settings.autosave.
 - Incluir dados completos da Ficha e Inventário.
 - Se autosave ativo, setar ui.intents.emit_state_changed = true.
+
+--- ADDENDUM - GESTÃO DE MISSÕES ---
+O sistema de missões é o motor da narrativa guiada. Use a estrutura de Quest definida em types.ts.
+
+1.  **Criação de Missão:** Quando um NPC oferecer uma missão e o jogador aceitar, adicione um novo objeto \`Quest\` ao array \`state.quests\`. Popule todos os campos: id, title, description, giver, status ('active') e os objetivos iniciais.
+2.  **Atualização de Progresso:** Quando o jogador completar uma ação que corresponda a um objetivo de uma missão ativa (ex: matar um monstro específico, entregar um item), atualize o \`status\` desse \`QuestObjective\` para 'completed'. A narrativa DEVE mencionar o progresso.
+3.  **Conclusão de Missão:** Quando todos os objetivos visíveis de uma missão forem concluídos, a narrativa deve guiar o jogador a reportar ao \`giver\`. Ao fazê-lo, mude o \`status\` da \`Quest\` para 'completed', entregue as recompensas (\`rewards\`) ao jogador (atualizando o \`state.player\`) e anuncie claramente na narrativa.
+4.  **Sugestões:** Se houver missões ativas, uma das sugestões em \`ui.suggestions\` deve sempre ser relacionada ao objetivo ativo da missão mais recente.
+
+--- ADDENDUM - SISTEMA DE CRIAÇÃO (CRAFTING) ---
+O crafting é a principal forma de usar perícias não-combativas e valorizar recursos.
+
+1.  **Intenção:** Quando o jogador expressar a intenção de criar um item (ex: "Quero forjar uma espada de ferro"), use este fluxo.
+2.  **Verificação de Materiais:** Verifique o \`player.inventario\`. A criação consome materiais. Se os materiais não estiverem presentes, a narrativa deve informar o que falta. Ex: "Você precisa de 3 Lingotes de Ferro e 1 Tira de Couro para forjar uma Espada de Ferro."
+3.  **Teste de Perícia:** O sucesso e a qualidade do item são baseados em um teste contra a perícia relevante (ex: \`Metalurgia\`, \`Alquimia\`).
+    -   **Cálculo Base:** A chance de sucesso é de \`50% + (Nível da Perícia * 2%)\`.
+    -   **Qualidade:** Se bem-sucedido, a qualidade do item (ex: Cru, Comum, Bom, Excepcional, Obra-Prima) é determinada pelo nível da perícia e um fator de sorte. Itens de alta qualidade podem ter bônus de atributos.
+4.  **Resultado:**
+    -   **Sucesso:** Os materiais são removidos do inventário e o novo item é adicionado. A narrativa descreve o processo e a qualidade do resultado.
+    -   **Falha:** Os materiais são consumidos, mas nenhum item é criado. A narrativa descreve o erro. Uma falha crítica (rolagem muito baixa) pode consumir mais materiais ou causar um pequeno dano.
+5.  **Receitas:** O jogador pode aprender novas receitas através de livros, mentores ou experimentação. Mantenha uma lista de receitas conhecidas em \`player.flags.receitasConhecidas: string[]\`.
+
+--- ADDENDUM - GESTÃO DE REINO/BASE ---
+Este sistema é ativado quando \`state.reino.posse = true\`.
+
+1.  **Aquisição:** A posse de um reino/base é um evento de final de missão épica. Ao conquistar um castelo ou receber um título de nobreza com terras, mude \`reino.posse\` para \`true\` e popule o \`reino.titulo\` inicial.
+2.  **Ciclo de Turnos de Gestão:** A cada X turnos de jogo (ex: 10), um "Turno de Gestão" ocorre.
+    -   **Geração de Recursos:** Adicione recursos (\`comida\`, \`madeira\`, \`pedra\`, etc.) ao \`state.reino.recursos\` com base nas construções e políticas ativas.
+    -   **Eventos do Reino:** Gere um evento específico do reino que exija uma decisão do jogador. Ex: "Uma praga atingiu as colheitas. Você deve gastar 100 de ouro em suprimentos ou arriscar a fome?", "Um reino vizinho propõe um pacto comercial."
+3.  **Ações de Gestão:** As sugestões (\`ui.suggestions\`) devem incluir opções de gestão quando o jogador estiver em sua capital.
+    -   **Construir:** "Construir uma Serraria (Custo: 100 madeira, 50 pedra. Geração: +10 madeira por ciclo)".
+    -   **Decretar Política:** "Decretar 'Impostos Baixos' (Efeito: Aumenta a felicidade da população, diminui a renda de ouro)".
+    -   **Diplomacia:** "Enviar um emissário para o Reino de Eldoria para melhorar as relações."
+4.  **Impacto no Mundo:** As decisões de gestão devem ter consequências narrativas e no estado do mundo. Uma aliança pode trazer novos aliados em uma guerra. Uma economia forte pode mudar as tendências de mercado na região.
+
 
 --- ADDENDUM — ORIGEM SOCIAL E IDADE (NOVAS REGRAS) ---
 A origem social e a idade do personagem são escolhas CRÍTICAS que definem o início do jogo e o desenvolvimento a longo prazo.
@@ -439,6 +474,7 @@ export const INITIAL_GAME_STATE: GameState = {
         {id: 'implants', label: 'Implantes'},
         {id: 'companions', label: 'Companheiros'},
         {id: 'relations', label: 'Relações'},
+        {id: 'quests', label: 'Missões'},
         {id: 'invspace', label: 'Inventário do Espaço'},
         {id: 'autosave', label: 'Autosave', checked: true},
     ],

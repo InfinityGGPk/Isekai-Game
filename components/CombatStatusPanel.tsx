@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GameState } from '../types';
+import { GameState, Condition } from '../types';
 
 const ResourceBar: React.FC<{ value: number; max: number; label: string; color: string }> = ({ value, max, label, color }) => {
     const percentage = max > 0 ? Math.min(100, (value / max) * 100) : 0;
@@ -19,7 +19,7 @@ const ResourceBar: React.FC<{ value: number; max: number; label: string; color: 
     );
 };
 
-const CombatantStatus: React.FC<{ name: string; level: number | string; hp: number; hpMax: number; mana?: number; manaMax?: number; stamina?: number; staminaMax?: number; conditions: string[] }> = ({ name, level, hp, hpMax, mana, manaMax, stamina, staminaMax, conditions }) => {
+const CombatantStatus: React.FC<{ name: string; level: number | string; hp: number; hpMax: number; mana?: number; manaMax?: number; stamina?: number; staminaMax?: number; conditions: (string | Condition)[] }> = ({ name, level, hp, hpMax, mana, manaMax, stamina, staminaMax, conditions }) => {
     return (
         <div className="bg-slate-800/50 p-3 rounded-lg mb-4">
             <h3 className="font-bold text-lg text-amber-400 font-cinzel">{name} <span className="text-sm text-slate-400 font-sans"> (Nvl. {level})</span></h3>
@@ -29,7 +29,7 @@ const CombatantStatus: React.FC<{ name: string; level: number | string; hp: numb
             {conditions.length > 0 && (
                 <div className="mt-2 text-xs">
                     <span className="font-semibold text-slate-400">Condições: </span>
-                    <span className="text-red-400">{conditions.join(', ')}</span>
+                    <span className="text-red-400">{conditions.map(c => typeof c === 'string' ? c : c.nome).join(', ')}</span>
                 </div>
             )}
         </div>
