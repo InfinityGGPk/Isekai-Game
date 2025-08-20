@@ -2,7 +2,7 @@ import React from 'react';
 import { PlayerState, PlayerAttributes, Condition } from '../types';
 import { SKILL_DESCRIPTIONS } from '../constants';
 
-// --- Componentes de UI Internos ---
+// --- Componentes de UI Internos (Helpers) ---
 
 const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => (
   <div className="relative flex items-center group">
@@ -45,14 +45,9 @@ const ResourceBar: React.FC<{ value: number; max: number; label: string; color: 
   );
 };
 
-interface CharacterSheetProps {
-  player: PlayerState;
-  onClose: () => void;
-}
+// --- Componente Principal da Ficha (Versão Corrigida) ---
 
-// --- Componente Principal com Barra de Nível ---
-
-const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
+const CharacterSheet: React.FC<{ player: PlayerState, onClose: () => void }> = ({ player, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-6xl max-h-[90vh] bg-slate-800 border border-slate-600 rounded-lg shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
@@ -81,32 +76,26 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
           <button onClick={onClose} className="text-3xl text-slate-400 hover:text-white">&times;</button>
         </header>
 
-        {/* --- BARRA DE EXPERIÊNCIA DO NÍVEL --- */}
         <div className="p-2 bg-slate-900/50">
            {player.nivelInfo && <ProgressBar value={player.nivelInfo.xp} max={player.nivelInfo.xp_next} label="XP de Nível" />}
         </div>
 
         <div className="flex-1 p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Coluna da Esquerda */}
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
                 <div>
                     <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Atributos</h3>
                     <ul className="space-y-3">
-                      {(Object.keys(player.atributos) as Array<keyof PlayerAttributes>).map((attrKey) => {
-                        const value = player.atributos[attrKey];
-                        const xpInfo = player.atributos_xp[attrKey];
-                        return (
-                          <li key={attrKey} className="bg-slate-700/50 p-2 rounded">
-                            <div className="flex justify-between font-bold">
-                              <span>{attrKey}</span>
-                              <span>{value}</span>
-                            </div>
-                            {xpInfo && <ProgressBar value={xpInfo.xp} max={xpInfo.next} label="XP" />}
-                          </li>
-                        );
-                      })}
+                      {(Object.keys(player.atributos) as Array<keyof PlayerAttributes>).map((attrKey) => (
+                        <li key={attrKey} className="bg-slate-700/50 p-2 rounded">
+                          <div className="flex justify-between font-bold">
+                            <span>{attrKey}</span>
+                            <span>{player.atributos[attrKey]}</span>
+                          </div>
+                          {player.atributos_xp[attrKey] && <ProgressBar value={player.atributos_xp[attrKey].xp} max={player.atributos_xp[attrKey].next} label="XP" />}
+                        </li>
+                      ))}
                     </ul>
                 </div>
                 <div>
@@ -126,24 +115,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                     </ul>
                 </div>
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Classes</h3>
-              {player.classes && player.classes.length > 0 ? (
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {player.classes.map((classe) => (
-                    <li key={classe.nome} className="bg-slate-700/50 p-3 rounded">
-                      <p className="font-bold text-amber-200">{classe.nome}</p>
-                      <div className="mt-1">
-                        <ProgressBar value={classe.xp} max={classe.xp_next} label={`Nível ${classe.nivel} XP`} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className="text-slate-400">Nenhuma classe adquirida.</p>}
-            </div>
           </div>
 
-          {/* Coluna da Direita */}
           <div className="space-y-6">
             <div>
                 <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Recursos</h3>
@@ -155,45 +128,35 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                     <ResourceBar value={player.derivados.Sanidade} max={player.derivados.Sanidade_max} label="Sanidade" color="bg-slate-400"/>
                 </div>
             </div>
+
+            {/* --- SEÇÕES DE PROGRESSÃO CORRIGIDAS --- */}
             <div className="bg-slate-700/50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xl font-bold text-amber-300 font-cinzel">Fama e Rank</h3>
+                    <h3 className="text-xl font-bold text-amber-300 font-cinzel">Fama</h3>
                     <div className="text-right">
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Rank Atual</p>
                         <p className="text-lg font-semibold text-amber-300">{player.patente}</p>
                     </div>
                 </div>
-                <ProgressBar value={player.fama.xp} max={player.fama.xp_next} label="Fama XP" />
+                <ProgressBar value={player.fama.xp} max={player.fama.xp_next} label="Progresso para o Próximo Rank" />
             </div>
-            <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
-                 <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-amber-300 font-cinzel">Moedas</h4>
-                     <div className="flex gap-4 text-center">
-                        <div><p className="text-lg font-bold text-yellow-500">{player.moedas.ouro}</p><p className="text-xs text-slate-400">Ouro</p></div>
-                        <div><p className="text-lg font-bold text-slate-300">{player.moedas.prata}</p><p className="text-xs text-slate-400">Prata</p></div>
-                        <div><p className="text-lg font-bold text-orange-400">{player.moedas.cobre}</p><p className="text-xs text-slate-400">Cobre</p></div>
-                    </div>
-                 </div>
-                 <hr className="border-slate-600"/>
-                 <div>
-                    <h4 className="font-bold text-amber-300 font-cinzel mb-2">Condições</h4>
-                    {player.condicoes.length > 0 ? (
-                       <ul className="flex flex-wrap gap-2">
-                        {player.condicoes.map((cond, index) => {
-                           const isString = typeof cond === 'string';
-                           const condition = isString ? { nome: cond } as Partial<Condition> : cond as Condition;
-                           const key = condition.id || `${condition.nome}-${index}`;
-                           const tooltipText = `${condition.descricao || ''}${condition.duracao ? ` (Duração: ${condition.duracao})` : ''}`;
-                           return (
-                             <Tooltip key={key} text={tooltipText}>
-                                <li className="bg-red-900/50 text-red-300 px-2 py-1 rounded text-sm cursor-help">{condition.nome}</li>
-                             </Tooltip>
-                           );
-                        })}
-                      </ul>
-                    ) : <p className="text-sm text-slate-400">Nenhuma condição ativa.</p>}
-                 </div>
+
+            <div className="bg-slate-700/50 p-4 rounded-lg">
+              <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Classes</h3>
+              {player.classes && player.classes.length > 0 ? (
+                <ul className="space-y-3">
+                  {player.classes.map((classe) => (
+                    <li key={classe.nome} className="bg-slate-800 p-3 rounded">
+                      <p className="font-bold text-amber-200">{classe.nome}</p>
+                      <div className="mt-1">
+                        <ProgressBar value={classe.xp} max={classe.xp_next} label={`Nível ${classe.nivel} XP`} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-slate-400">Nenhuma classe adquirida.</p>}
             </div>
+            
           </div>
         </div>
       </div>
