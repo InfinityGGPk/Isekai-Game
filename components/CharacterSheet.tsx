@@ -1,12 +1,6 @@
-
 import React from 'react';
-import { PlayerState, PlayerAttributes, Skill } from '../types';
+import { PlayerState, PlayerAttributes, Condition } from '../types';
 import { SKILL_DESCRIPTIONS } from '../constants';
-
-interface CharacterSheetProps {
-  player: PlayerState;
-  onClose: () => void;
-}
 
 // --- Componentes de UI Internos ---
 
@@ -25,7 +19,7 @@ const ProgressBar: React.FC<{ value: number; max: number; label: string }> = ({ 
     <div>
       <div className="flex justify-between text-xs text-slate-400">
         <span>{label}</span>
-        <span>{value} / {max}</span>
+        <span>{Math.floor(value)} / {Math.floor(max)}</span>
       </div>
       <div className="w-full bg-slate-900 rounded-full h-2.5">
         <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
@@ -51,20 +45,23 @@ const ResourceBar: React.FC<{ value: number; max: number; label: string; color: 
   );
 };
 
-// --- Componente Principal Reestruturado ---
+interface CharacterSheetProps {
+  player: PlayerState;
+  onClose: () => void;
+}
+
+// --- Componente Principal com Barra de Nível ---
 
 const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-6xl max-h-[90vh] bg-slate-800 border border-slate-600 rounded-lg shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
         
-        {/* Header com Nível, Classe e Rank */}
         <header className="flex justify-between items-center p-4 border-b border-slate-600">
           <div>
             <h2 className="text-3xl font-bold text-amber-400 font-cinzel">{player.nome}</h2>
             <p className="text-sm text-slate-400">{player.títulos?.join(', ') || 'Aventureiro'}</p>
           </div>
-          {/* NOVO: Painel de Status */}
           <div className="flex items-center gap-4 text-center">
               <div className="px-3">
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Nível</p>
@@ -84,20 +81,24 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
           <button onClick={onClose} className="text-3xl text-slate-400 hover:text-white">&times;</button>
         </header>
 
-        {/* Corpo Principal com 2 Colunas */}
+        {/* --- BARRA DE EXPERIÊNCIA DO NÍVEL --- */}
+        <div className="p-2 bg-slate-900/50">
+           {player.nivelInfo && <ProgressBar value={player.nivelInfo.xp} max={player.nivelInfo.xp_next} label="XP de Nível" />}
+        </div>
+
         <div className="flex-1 p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Coluna da Esquerda: Atributos, Perícias, Habilidades */}
+          {/* Coluna da Esquerda */}
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
                 <div>
                     <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Atributos</h3>
                     <ul className="space-y-3">
-                      {Object.entries(player.atributos).map(([key, value]) => {
-                        const attrKey = key as keyof PlayerAttributes;
+                      {(Object.keys(player.atributos) as Array<keyof PlayerAttributes>).map((attrKey) => {
+                        const value = player.atributos[attrKey];
                         const xpInfo = player.atributos_xp[attrKey];
                         return (
-                          <li key={key} className="bg-slate-700/50 p-2 rounded">
+                          <li key={attrKey} className="bg-slate-700/50 p-2 rounded">
                             <div className="flex justify-between font-bold">
                               <span>{attrKey}</span>
                               <span>{value}</span>
@@ -111,7 +112,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                 <div>
                     <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Perícias</h3>
                     <ul className="space-y-2">
-                      {Object.entries(player.pericias).map(([key, value]) => (
+                      {Object.keys(player.pericias).map((key) => (
                         <li key={key} className="flex justify-between items-center bg-slate-700/50 px-3 py-1 rounded text-sm">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">{key}</span>
@@ -119,7 +120,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                                <div className="cursor-help w-4 h-4 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full text-xs font-bold border border-slate-600 select-none">?</div>
                             </Tooltip>
                           </div>
-                          <span className="font-bold">{value}</span>
+                          <span className="font-bold">{player.pericias[key]}</span>
                         </li>
                       ))}
                     </ul>
@@ -140,24 +141,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                 </ul>
               ) : <p className="text-slate-400">Nenhuma classe adquirida.</p>}
             </div>
-             <div>
-              <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Super-Habilidades</h3>
-              {player.habilidades.length > 0 ? (
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {player.habilidades.map((skill: Skill) => (
-                    <li key={skill.id} className="bg-slate-700/50 p-3 rounded">
-                      <p className="font-bold text-amber-200">{skill.nome}</p>
-                      <div className="mt-1">
-                        <ProgressBar value={skill.xp} max={skill.xp_next} label={`Nível ${skill.nível} XP`} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className="text-slate-400">Nenhuma habilidade.</p>}
-            </div>
           </div>
 
-          {/* Coluna da Direita: Recursos e Informações Gerais */}
+          {/* Coluna da Direita */}
           <div className="space-y-6">
             <div>
                 <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Recursos</h3>
@@ -169,14 +155,20 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                     <ResourceBar value={player.derivados.Sanidade} max={player.derivados.Sanidade_max} label="Sanidade" color="bg-slate-400"/>
                 </div>
             </div>
-            <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
-                <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Fama e Rank</h3>
-                <ProgressBar value={player.fama.xp} max={player.fama.xp_next} label={`Progresso para o Próximo Rank`} />
+            <div className="bg-slate-700/50 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-xl font-bold text-amber-300 font-cinzel">Fama e Rank</h3>
+                    <div className="text-right">
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Rank Atual</p>
+                        <p className="text-lg font-semibold text-amber-300">{player.patente}</p>
+                    </div>
+                </div>
+                <ProgressBar value={player.fama.xp} max={player.fama.xp_next} label="Fama XP" />
             </div>
             <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
                  <div className="flex justify-between items-center">
                     <h4 className="font-bold text-amber-300 font-cinzel">Moedas</h4>
-                    <div className="flex gap-4 text-center">
+                     <div className="flex gap-4 text-center">
                         <div><p className="text-lg font-bold text-yellow-500">{player.moedas.ouro}</p><p className="text-xs text-slate-400">Ouro</p></div>
                         <div><p className="text-lg font-bold text-slate-300">{player.moedas.prata}</p><p className="text-xs text-slate-400">Prata</p></div>
                         <div><p className="text-lg font-bold text-orange-400">{player.moedas.cobre}</p><p className="text-xs text-slate-400">Cobre</p></div>
@@ -189,7 +181,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ player, onClose }) => {
                        <ul className="flex flex-wrap gap-2">
                         {player.condicoes.map((cond, index) => {
                            const isString = typeof cond === 'string';
-                           const condition = isString ? { nome: cond } : cond as { id?: string, nome: string, descricao?: string, duracao?: string | number };
+                           const condition = isString ? { nome: cond } as Partial<Condition> : cond as Condition;
                            const key = condition.id || `${condition.nome}-${index}`;
                            const tooltipText = `${condition.descricao || ''}${condition.duracao ? ` (Duração: ${condition.duracao})` : ''}`;
                            return (

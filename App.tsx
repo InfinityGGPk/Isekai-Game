@@ -104,6 +104,11 @@ const App: React.FC = () => {
               reputacao: oldFamaReputation.reputacao || oldFamaReputation || {}
           };
       }
+      if (!savedGameState.player.nivelInfo) {
+          console.log("Old save file detected. Upgrading with dedicated Level XP system.");
+          const nextXp = savedGameState.player.nivel > 1 ? Math.floor(1000 * Math.pow(savedGameState.player.nivel, 1.5)) : 1000;
+          savedGameState.player.nivelInfo = { xp: 0, xp_next: nextXp };
+      }
       // -------------------------
       return savedGameState;
   }

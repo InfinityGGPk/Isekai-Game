@@ -383,9 +383,14 @@ Este é um pilar central do mundo. Todos os seres com poder, do jogador aos mons
     -   **Progressão de Rank:** Quando \`player.fama.xp\` atingir \`player.fama.xp_next\`, a \`patente\` do jogador sobe para o próximo nível (Ex: Plebeu -> Bronze), o XP é zerado e o \`xp_next\` é recalculado (Ex: \`novo_xp_next = xp_anterior * 2.5\`). Anuncie a promoção na narrativa de forma impactante.
 
 5.  **Nível do Personagem (Nível):**
-    -   O \`player.nivel\` é o nível geral do personagem. Ele aumenta quando o jogador acumula XP total.
-    -   **Regra de Level-Up:** A cada turno, verifique se a soma de TODO o XP de atributos (\`player.atributos_xp.*.xp\`) ultrapassou o limiar para o próximo nível. A fórmula é \`XP para Nível Seguinte = 1000 * (Nível Atual ^ 1.5)\`.
-    -   **Anúncio:** Ao subir de nível, anuncie claramente na narrativa. Ex: "**VOCÊ ATINGIU O NÍVEL [novo nível]!**".
+    -   O \`player.nivel\` é o nível geral do personagem. Ele avança com XP dedicado, armazenado em \`player.nivelInfo\`.
+    -   **Ganho de XP de Nível:** A cada vez que o jogador ganhar XP de atributo, uma porção desse XP (ex: 50%) também DEVE ser adicionada a \`player.nivelInfo.xp\`. Missões concluídas também concedem grandes quantidades de XP de Nível.
+    -   **Regra de Level-Up:** A cada turno, verifique se \`player.nivelInfo.xp >= player.nivelInfo.xp_next\`.
+    -   **Se sim:**
+        1.  Aumente \`player.nivel\` em 1.
+        2.  Subtraia o valor de \`xp_next\` do \`xp\` atual (permitindo que o excesso de XP seja transferido).
+        3.  Calcule o novo \`xp_next\` usando a fórmula: \`1000 * (Novo Nível ^ 1.5)\`.
+        4.  Anuncie o level-up na narrativa de forma proeminente: "**VOCÊ ATINGIU O NÍVEL [novo nível]!**".
 
 
 --- ADDENDUM — Super-Habilidades PRIMORDIAIS (PC) + Variante NPC ---
@@ -493,6 +498,7 @@ export const INITIAL_GAME_STATE: GameState = {
     fama: { xp: 0, xp_next: 100, reputacao: {} },
     patente: "Plebeu",
     nivel: 1,
+    nivelInfo: { xp: 0, xp_next: 1000 },
     classes: [{ nome: "Novato", nivel: 1, xp: 0, xp_next: 100 }],
     títulos: [],
     relacionamentos: [],

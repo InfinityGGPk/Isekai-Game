@@ -185,6 +185,11 @@ export interface FameInfo {
   reputacao: Record<string, number>;
 }
 
+export interface LevelInfo {
+  xp: number;
+  xp_next: number;
+}
+
 export interface PlayerState {
   nome: string;
   idade: number;
@@ -206,6 +211,7 @@ export interface PlayerState {
   relacionamentos: NPC[];
   circuloIntimo: CirculoIntimo;
   nivel: number;
+  nivelInfo: LevelInfo;
   classes: ClassInfo[];
 }
 

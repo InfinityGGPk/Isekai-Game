@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { PlayerState, PlayerAttributes } from '../types';
 import { ATTRIBUTE_POINTS, MIN_ATTRIBUTE, MAX_ATTRIBUTE, INITIAL_GAME_STATE, ATTRIBUTE_DESCRIPTIONS, SUPER_SKILLS, SOCIAL_ORIGINS } from '../constants';
@@ -93,6 +92,30 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
         return { ...prev, atributos: newAttributes, atributos_xp: newAtributosXp };
     });
   };
+  
+    const handleAttributeIncrement = (attr: AttributeKeys, amount: number) => {
+    if (!player.atributos) return;
+    const currentValue = player.atributos[attr];
+    const newValue = currentValue + amount;
+    handleAttributeChange(attr, String(newValue));
+  };
+  
+  const handleDistributeEqually = () => {
+    if (!player.atributos) return;
+    const attrKeys = Object.keys(player.atributos) as AttributeKeys[];
+    const numAttributes = attrKeys.length;
+    const pointsPerAttribute = Math.floor(ATTRIBUTE_POINTS / numAttributes);
+    const remainder = ATTRIBUTE_POINTS % numAttributes;
+
+    const newAttributes = { ...player.atributos } as PlayerAttributes;
+    
+    attrKeys.forEach((key, index) => {
+      let points = pointsPerAttribute + (index < remainder ? 1 : 0);
+      newAttributes[key] = MIN_ATTRIBUTE + points;
+    });
+    
+    setPlayer(prev => ({ ...prev, atributos: newAttributes }));
+  };
 
   const handleSkillToggle = (skillId: string) => {
     setSelectedSkillIds(prev => {
@@ -186,30 +209,35 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
             <div>
               <h2 className="text-2xl font-bold text-amber-400 mb-2 font-cinzel">ATRIBUTOS</h2>
               <p className="mb-4 text-slate-400">Distribua seus {ATTRIBUTE_POINTS} pontos. Base {MIN_ATTRIBUTE}, Máximo {MAX_ATTRIBUTE}.</p>
-              <div className="mb-4 p-3 bg-slate-900 rounded-md text-center">
+              <div className="mb-4 p-3 bg-slate-900 rounded-md flex justify-center items-center gap-4">
                 <span className="text-xl font-bold text-amber-400">Pontos Restantes: {remainingPoints}</span>
+                 <button
+                    onClick={handleDistributeEqually}
+                    className="px-3 py-1 text-xs font-bold bg-slate-700 text-amber-300 rounded-md hover:bg-slate-600 transition-colors"
+                  >
+                    Distribuir Igualmente
+                  </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2">
-                {Object.keys(player.atributos).map(key => {
-                  const attrKey = key as AttributeKeys;
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 max-h-[50vh] overflow-y-auto pr-2">
+                {(Object.keys(player.atributos) as Array<AttributeKeys>).map(attrKey => {
+                  const value = player.atributos![attrKey];
                   return (
                     <div key={attrKey} className="flex items-center justify-between bg-slate-800 p-2 rounded-md">
                        <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-300 w-24">{attrKey}</span>
                           <Tooltip text={ATTRIBUTE_DESCRIPTIONS[attrKey]}>
-                              <div className="cursor-help w-5 h-5 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full text-xs font-bold border border-slate-600 select-none">
-                                  ?
-                              </div>
+                              <div className="cursor-help w-5 h-5 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full text-xs font-bold border border-slate-600 select-none">?</div>
                           </Tooltip>
                       </div>
-                      <input
-                        type="number"
-                        min={MIN_ATTRIBUTE}
-                        max={MAX_ATTRIBUTE}
-                        value={player.atributos[attrKey]}
-                        onChange={(e) => handleAttributeChange(attrKey, e.target.value)}
-                        className="w-24 px-2 py-1 text-center font-bold text-xl text-white bg-[#1e293b] border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
+                      <div className="flex items-center gap-1">
+                          {[-100, -10, -1].map(amount => (
+                              <button key={amount} onClick={() => handleAttributeIncrement(attrKey, amount)} disabled={value + amount < MIN_ATTRIBUTE} className="w-9 h-8 font-mono text-sm font-bold bg-slate-700 rounded hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors">{amount}</button>
+                          ))}
+                          <input type="number" value={value} onChange={(e) => handleAttributeChange(attrKey, e.target.value)} className="w-20 px-2 py-1 text-center font-bold text-xl text-white bg-[#1e293b] border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
+                          {[1, 10, 100].map(amount => (
+                              <button key={amount} onClick={() => handleAttributeIncrement(attrKey, amount)} disabled={remainingPoints < amount || value + amount > MAX_ATTRIBUTE} className="w-9 h-8 font-mono text-sm font-bold bg-slate-700 rounded hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors">+{amount}</button>
+                          ))}
+                      </div>
                     </div>
                   );
                 })}
@@ -238,7 +266,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-[#0c1425]">
-      <div className="w-full max-w-4xl p-8 space-y-6 bg-[#111827]/80 backdrop-blur-sm border border-slate-700 rounded-lg shadow-2xl">
+      <div className="w-full max-w-5xl p-8 space-y-6 bg-[#111827]/80 backdrop-blur-sm border border-slate-700 rounded-lg shadow-2xl">
         <h1 className="text-4xl font-bold text-center text-amber-400 font-cinzel">CRIAÇÃO DE PERSONAGEM</h1>
         
         <div className="border-b border-slate-700">
