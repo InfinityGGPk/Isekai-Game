@@ -334,6 +334,60 @@ A cada turno, APÓS aplicar os resultados da ação, você DEVE verificar se alg
     4. **Anuncie o aumento de nível da habilidade na narrativa!** Ex: "**[Habilidade] atingiu o nível [novo nível]!**"
 Esta é uma regra obrigatória para a progressão do jogador.
 
+--- ADDENDUM — CLASSES, RANKS E MULTI-CLASSE (SISTEMA V2.0) ---
+Este é um pilar central do mundo. Todos os seres com poder, do jogador aos monstros e NPCs, operam sob este sistema.
+
+1.  **Regra Universal de Classe e Rank:**
+    * **TODOS os NPCs e monstros gerados DEVEM ter uma classe e um rank de poder.** Ao descrever um novo personagem, sempre mencione sua classe e seu poder de forma narrativa (ex: "um Capitão da Guarda (Guerreiro, Rank C)", "o arquimago (Mago Elemental, Rank A)").
+    * A classe do jogador (\`player.classes\`) é um array. A primeira classe no array é considerada a "Classe Principal" e deve ser a mais exibida na UI.
+
+2.  **Sistema de Multi-Classe (Para o Jogador):**
+    * **Aquisição:** O jogador pode adquirir novas classes (até um limite de 3) ao encontrar "Gatilhos de Desbloqueio" no mundo. Isso NUNCA é uma escolha de menu. Gatilhos incluem:
+        * **Treinamento com Mestre:** Treinar com um mestre de uma classe específica pode desbloqueá-la.
+        * **Artefatos de Classe:** Encontrar um item lendário ligado a uma classe pode conceder acesso a ela.
+        * **Feitos Extraordinários:** Realizar uma ação quase impossível pode desbloquear uma classe oculta (ex: sobreviver a um veneno divino pode abrir o caminho para a classe "Imune").
+    * **Progressão:** O XP de classe é ganho ao usar habilidades relacionadas a ela. O jogador pode "focar" em uma classe para direcionar o ganho de XP.
+
+3.  **Biblioteca de Classes (Inspiração para o Mestre):**
+    Use esta lista como base para popular o mundo. Crie NPCs com essas classes e ofereça-as como caminhos para o jogador.
+    * **Tier 1 (Classes Básicas):**
+        * **Guerreiro:** Mestre do combate físico.
+        * **Mago:** Conjurador de magia arcana.
+        * **Ladino:** Especialista em furtividade e truques.
+        * **Clérigo:** Devoto de uma divindade, usa poder sagrado.
+        * **Ranger:** Caçador dos ermos, mestre do arco e da sobrevivência.
+    * **Tier 2 (Classes Avançadas - Requerem pré-requisitos):**
+        * **Paladino:** (Guerreiro + Clérigo) Campeão sagrado.
+        * **Feiticeiro de Batalha:** (Guerreiro + Mago) Mago que luta na linha de frente.
+        * **Assassino:** (Ladino + Ranger) Mestre em eliminar alvos silenciosamente.
+        * **Druida:** (Clérigo + Ranger) Protetor da natureza, pode mudar de forma.
+        * **Artífice:** (Mago + Ladino) Criador de itens mágicos e tecnológicos.
+        * **Bardo:** Manipulador de emoções através da arte.
+        * **Monge:** Lutador desarmado que usa energia interior (Ki).
+    * **Tier 3 (Classes de Prestígio - Extremamente raras):**
+        * **Lorde Arcano:** Mago que transcendeu as limitações normais da mana.
+        * **Mestre de Armas:** Guerreiro que atingiu o auge com um tipo de arma.
+        * **Andarilho das Sombras:** Ladino que pode viajar através das sombras.
+        * **Avatar Divino:** Clérigo que se tornou o representante direto de seu deus.
+        * **Soberano Elemental:** Mago com domínio absoluto sobre um elemento.
+    * **Classes Ocultas (Desbloqueadas por Feitos Secretos):**
+        * **Devorador de Magia:** Adquirida ao sobreviver a um feitiço de nível mítico. Pode consumir mana.
+        * **Viajante do Tempo:** Adquirida ao resolver um paradoxo temporal. Pode manipular o fluxo do tempo.
+        * **Forjador de Almas:** Adquirida ao criar um artefato consciente. Pode imbuir itens com almas.
+        * **Ceifador:** Adquirida ao derrotar um anjo da morte e tomar seus poderes.
+        * **Arquiteto da Realidade:** Adquirida ao dominar uma Super-Habilidade Primordial em seu nível máximo.
+
+4.  **Rank de Aventureiro (Patente) e Fama:**
+    -   A \`player.patente\` reflete o reconhecimento social. A progressão é gerenciada por XP de Fama em \`player.fama\`.
+    -   **Ganho de XP de Fama:** O jogador ganha XP de Fama ao completar missões, derrotar inimigos notórios ou realizar feitos públicos. O valor ganho deve ser proporcional ao impacto do feito.
+    -   **Progressão de Rank:** Quando \`player.fama.xp\` atingir \`player.fama.xp_next\`, a \`patente\` do jogador sobe para o próximo nível (Ex: Plebeu -> Bronze), o XP é zerado e o \`xp_next\` é recalculado (Ex: \`novo_xp_next = xp_anterior * 2.5\`). Anuncie a promoção na narrativa de forma impactante.
+
+5.  **Nível do Personagem (Nível):**
+    -   O \`player.nivel\` é o nível geral do personagem. Ele aumenta quando o jogador acumula XP total.
+    -   **Regra de Level-Up:** A cada turno, verifique se a soma de TODO o XP de atributos (\`player.atributos_xp.*.xp\`) ultrapassou o limiar para o próximo nível. A fórmula é \`XP para Nível Seguinte = 1000 * (Nível Atual ^ 1.5)\`.
+    -   **Anúncio:** Ao subir de nível, anuncie claramente na narrativa. Ex: "**VOCÊ ATINGIU O NÍVEL [novo nível]!**".
+
+
 --- ADDENDUM — Super-Habilidades PRIMORDIAIS (PC) + Variante NPC ---
 Regra global: ao resolver uma super-habilidade, se actor.is_player == true, aplicar MODO PRIMORDIAL (PC). Caso contrário, aplicar VARIANTE NPC (limitada).
 Convenção: B(x) = floor(sqrt(x)). Âncoras/scry estendem alcance a longa distância. Não nerfar o PC em cena; o mundo pode reagir depois (chefes, zonas raras, antíteses).
@@ -436,8 +490,10 @@ export const INITIAL_GAME_STATE: GameState = {
     moedas: { cobre: 0, prata: 0, ouro: 0 },
     pericias: { Combate: 1, Magia: 1, Ofício: 1, Sobrevivência: 1, Liderança: 1, Comércio: 1 },
     condicoes: [],
-    fama: {},
+    fama: { xp: 0, xp_next: 100, reputacao: {} },
     patente: "Plebeu",
+    nivel: 1,
+    classes: [{ nome: "Novato", nivel: 1, xp: 0, xp_next: 100 }],
     títulos: [],
     relacionamentos: [],
     circuloIntimo: {

@@ -158,6 +158,8 @@ export interface NPC {
   localizacao?: string;
   afeto?: number; // Para mecânicas de sedução
   lealdade?: number;
+  classe: string;
+  rank: string;
 }
 
 export interface CirculoIntimo {
@@ -170,6 +172,18 @@ export interface CirculoIntimo {
   };
 }
 
+export interface ClassInfo {
+  nome: string;
+  nivel: number;
+  xp: number;
+  xp_next: number;
+}
+
+export interface FameInfo {
+  xp: number;
+  xp_next: number;
+  reputacao: Record<string, number>;
+}
 
 export interface PlayerState {
   nome: string;
@@ -186,11 +200,13 @@ export interface PlayerState {
   moedas: { cobre: number; prata: number; ouro: number };
   pericias: Record<string, number>;
   condicoes: (string | Condition)[];
-  fama: Record<string, number>;
+  fama: FameInfo;
   patente: string;
   títulos: string[];
   relacionamentos: NPC[];
   circuloIntimo: CirculoIntimo;
+  nivel: number;
+  classes: ClassInfo[];
 }
 
 export interface WorldState {
@@ -368,6 +384,7 @@ export interface Companion {
   habilidadesApoio: { id: string, nome: string }[];
   equipamento: Partial<Equipment>;
   emMissao: boolean;
+  rank: string;
 }
 
 export interface Enemy {

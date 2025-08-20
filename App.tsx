@@ -52,43 +52,71 @@ const App: React.FC = () => {
     }
   }, [showToast]);
 
+  const upgradeSaveFile = (savedGameState: GameState) => {
+      // --- UPGRADE SAVE FILE ---
+      if (!savedGameState.player.equipamento) {
+          console.log("Old save file detected. Upgrading with Equipment system.");
+          savedGameState.player.equipamento = INITIAL_GAME_STATE.player.equipamento;
+          savedGameState.player.sintonias = INITIAL_GAME_STATE.player.sintonias;
+      }
+      
+      if ((savedGameState.player as any).harem && !savedGameState.player.circuloIntimo) {
+          console.log("Migrating save file: renaming 'harem' to 'circuloIntimo'.");
+          savedGameState.player.circuloIntimo = (savedGameState.player as any).harem;
+          delete (savedGameState.player as any).harem;
+      }
+
+      if (!savedGameState.player.relacionamentos) {
+          console.log("Old save file detected. Upgrading with Relationships system.");
+          savedGameState.player.relacionamentos = INITIAL_GAME_STATE.player.relacionamentos;
+          savedGameState.player.circuloIntimo = INITIAL_GAME_STATE.player.circuloIntimo;
+      }
+
+      if (!savedGameState.quests) {
+          console.log("Old save file detected. Upgrading with Quest system.");
+          savedGameState.quests = [];
+      }
+      
+      if (typeof savedGameState.flags !== 'object' || savedGameState.flags === null) {
+          console.log("Old save file detected. Upgrading flags system.");
+          savedGameState.flags = { tutorial: true };
+      }
+      if (savedGameState.player.nivel === undefined) {
+          console.log("Old save file detected. Upgrading with Level/Class system.");
+          savedGameState.player.nivel = 1;
+      }
+       if ((savedGameState.player as any).classe && typeof (savedGameState.player as any).classe === 'string') {
+          console.log("Migrating save file: converting single class to multi-class system.");
+          savedGameState.player.classes = [{
+              nome: (savedGameState.player as any).classe,
+              nivel: 1,
+              xp: 0,
+              xp_next: 100
+          }];
+          delete (savedGameState.player as any).classe;
+      }
+      if (savedGameState.player.fama && (savedGameState.player.fama as any).xp === undefined) {
+          console.log("Migrating save file: converting old fame system to new XP-based system.");
+          const oldFamaReputation = savedGameState.player.fama as any;
+          savedGameState.player.fama = {
+              xp: 0,
+              xp_next: 100,
+              reputacao: oldFamaReputation.reputacao || oldFamaReputation || {}
+          };
+      }
+      // -------------------------
+      return savedGameState;
+  }
+
   const loadGame = useCallback(() => {
     setIsLoading(true);
     setLoadingMessage('Carregando jogo salvo...');
     try {
       const savedData = localStorage.getItem(SAVE_GAME_KEY);
       if (savedData) {
-        const { gameState: savedGameState, turnHistory: savedTurnHistory, chatHistory: savedChatHistory } = JSON.parse(savedData);
+        let { gameState: savedGameState, turnHistory: savedTurnHistory, chatHistory: savedChatHistory } = JSON.parse(savedData);
         
-        // --- UPGRADE SAVE FILE ---
-        if (!savedGameState.player.equipamento) {
-            console.log("Old save file detected. Upgrading with Equipment system.");
-            savedGameState.player.equipamento = INITIAL_GAME_STATE.player.equipamento;
-            savedGameState.player.sintonias = INITIAL_GAME_STATE.player.sintonias;
-        }
-        
-        if ((savedGameState.player as any).harem && !savedGameState.player.circuloIntimo) {
-            console.log("Migrating save file: renaming 'harem' to 'circuloIntimo'.");
-            savedGameState.player.circuloIntimo = (savedGameState.player as any).harem;
-            delete (savedGameState.player as any).harem;
-        }
-
-        if (!savedGameState.player.relacionamentos) {
-            console.log("Old save file detected. Upgrading with Relationships system.");
-            savedGameState.player.relacionamentos = INITIAL_GAME_STATE.player.relacionamentos;
-            savedGameState.player.circuloIntimo = INITIAL_GAME_STATE.player.circuloIntimo;
-        }
-
-        if (!savedGameState.quests) {
-            console.log("Old save file detected. Upgrading with Quest system.");
-            savedGameState.quests = [];
-        }
-        
-        if (typeof savedGameState.flags !== 'object' || savedGameState.flags === null) {
-            console.log("Old save file detected. Upgrading flags system.");
-            savedGameState.flags = { tutorial: true };
-        }
-        // -------------------------
+        savedGameState = upgradeSaveFile(savedGameState);
 
         setGameState(savedGameState);
         setTurnHistory(savedTurnHistory);
@@ -109,16 +137,14 @@ const App: React.FC = () => {
   }, [showToast]);
 
   const startNewGame = useCallback(() => {
-    const confirmationText = "Tem certeza? Todo o progresso salvo será perdido.";
-    if (!saveExists || window.confirm(confirmationText)) {
-      localStorage.removeItem(SAVE_GAME_KEY);
-      setGameState(null);
-      setTurnHistory([]);
-      setChatHistory([]);
-      setSaveExists(false);
-      setGamePhase(GamePhase.CREATION);
-    }
-  }, [saveExists]);
+    // A linha com "window.confirm" foi removida para garantir execução imediata.
+    localStorage.removeItem(SAVE_GAME_KEY);
+    setGameState(null);
+    setTurnHistory([]);
+    setChatHistory([]);
+    setSaveExists(false);
+    setGamePhase(GamePhase.CREATION);
+  }, []);
 
   const exportGame = useCallback(() => {
     if (!gameState) return;
@@ -154,38 +180,10 @@ const App: React.FC = () => {
             try {
                 const result = event.target?.result;
                 if (typeof result !== 'string') throw new Error("File is not text");
-                const { gameState: importedGameState, turnHistory: importedTurnHistory, chatHistory: importedChatHistory } = JSON.parse(result);
+                let { gameState: importedGameState, turnHistory: importedTurnHistory, chatHistory: importedChatHistory } = JSON.parse(result);
                 if (!importedGameState || !importedTurnHistory) throw new Error("Invalid save file format");
                 
-                // --- UPGRADE IMPORTED SAVE FILE ---
-                if (!importedGameState.player.equipamento) {
-                    console.log("Old imported save file detected. Upgrading with Equipment system.");
-                    importedGameState.player.equipamento = INITIAL_GAME_STATE.player.equipamento;
-                    importedGameState.player.sintonias = INITIAL_GAME_STATE.player.sintonias;
-                }
-
-                if ((importedGameState.player as any).harem && !importedGameState.player.circuloIntimo) {
-                    console.log("Migrating imported save file: renaming 'harem' to 'circuloIntimo'.");
-                    importedGameState.player.circuloIntimo = (importedGameState.player as any).harem;
-                    delete (importedGameState.player as any).harem;
-                }
-
-                if (!importedGameState.player.relacionamentos) {
-                    console.log("Old imported save file detected. Upgrading with Relationships system.");
-                    importedGameState.player.relacionamentos = INITIAL_GAME_STATE.player.relacionamentos;
-                    importedGameState.player.circuloIntimo = INITIAL_GAME_STATE.player.circuloIntimo;
-                }
-                
-                if (!importedGameState.quests) {
-                    console.log("Old imported save file detected. Upgrading with Quest system.");
-                    importedGameState.quests = [];
-                }
-
-                if (typeof importedGameState.flags !== 'object' || importedGameState.flags === null) {
-                    console.log("Old imported save file detected. Upgrading flags system.");
-                    importedGameState.flags = { tutorial: true };
-                }
-                // ------------------------------------
+                importedGameState = upgradeSaveFile(importedGameState);
 
                 setGameState(importedGameState);
                 setTurnHistory(importedTurnHistory);
