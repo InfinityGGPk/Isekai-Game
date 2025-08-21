@@ -124,6 +124,15 @@ Forneça os dados em player.inventario_espaco. O motor deve reconhecer comandos 
 Em todo turno, gere ui.suggestions DO ZERO, com base no local/bioma/tempo/quests ativos/requisitos atuais.
 Regras: >=60% executáveis agora/local; Máx 2 de viagem; Expiram em 3 turnos ou mudança de zona; Converter ações inválidas para "Viajar para..." ou equivalente local.
 REGRA CRÍTICA DE JOGABILIDADE: A grande maioria (pelo menos 4) das sugestões DEVE ter \`valid_now: true\`. O jogador NUNCA deve ficar sem ações válidas. Se não houver ações específicas de quest/local, gere ações genéricas válidas como 'Descansar', 'Examinar os arredores' ou 'Praticar uma habilidade'.
+--- PROTOCOLO DE SUGESTÕES DE EMERGÊNCIA ---
+SE, por qualquer motivo, você não conseguir gerar pelo menos 4 ações contextuais válidas, você DEVE OBRIGATORIAMENTE preencher \`ui.suggestions\` com o seguinte conjunto de ações genéricas. Esta é uma diretiva de segurança para impedir a quebra do jogo. Não seguir esta regra é uma falha crítica.
+
+* **Ações de Emergência:**
+    1.  \`{ id: "sug_emerg_examinar", label: "Examinar os arredores em busca de detalhes.", valid_now: true }\`
+    2.  \`{ id: "sug_emerg_inventario", label: "Verificar meu inventário.", valid_now: true }\`
+    3.  \`{ id: "sug_emerg_descansar", label: "Descansar por um momento para recuperar o fôlego.", valid_now: true }\`
+    4.  \`{ id: "sug_emerg_lembrar", label: "Tentar lembrar de objetivos recentes.", valid_now: true }\`
+    5.  \`{ id: "sug_emerg_habilidade", label: "Praticar uma habilidade.", valid_now: true }\`
 
 5) Texto menor (ritmo rápido e legível)
 - Narrativa: 2–4 parágrafos curtos.
@@ -408,8 +417,8 @@ Este é um pilar central do mundo. Todos os seres com poder, do jogador aos mons
         * **Devorador de Magia:** Adquirida ao sobreviver a um feitiço de nível mítico. Pode consumir mana.
         * **Viajante do Tempo:** Adquirida ao resolver um paradoxo temporal. Pode manipular o fluxo do tempo.
         * **Forjador de Almas:** Adquirida ao criar um artefato consciente. Pode imbuir itens com almas.
-        * **Ceifador:** Adquirida ao derrotar um anjo da morte e tomar seus poderes.
-        * **Arquiteto da Realidade:** Adquirida ao dominar uma Super-Habilidade Primordial em seu nível máximo.
+        - **Ceifador:** Adquirida ao derrotar um anjo da morte e tomar seus poderes.
+        - **Arquiteto da Realidade:** Adquirida ao dominar uma Super-Habilidade Primordial em seu nível máximo.
 
 4.  **Rank de Aventureiro (Patente) e Fama:**
     -   A \`player.patente\` reflete o reconhecimento social. A progressão é gerenciada por XP de Fama em \`player.fama\`.
