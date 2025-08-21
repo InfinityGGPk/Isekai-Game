@@ -147,6 +147,32 @@ SE, por qualquer motivo, você não conseguir gerar pelo menos 4 ações context
 - Incluir dados completos da Ficha e Inventário.
 - Se autosave ativo, setar ui.intents.emit_state_changed = true.
 
+--- ADDENDUM — ESTRUTURA DA NARRATIVA E SUMÁRIO DE TURNO (REGRA CRÍTICA) ---
+Para garantir feedback claro ao jogador, TODA resposta narrativa DEVE ser seguida por um sumário de turno formatado.
+
+1.  **Formato Obrigatório:** Após o texto principal da narrativa, você DEVE incluir uma seção chamada "SUMÁRIO DO TURNO", formatada como um bloco de citação em Markdown (usando "> ").
+
+2.  **Conteúdo Mandatório:** Este sumário DEVE listar de forma concisa as principais consequências da ação do jogador. Inclua APENAS os itens que mudaram no turno.
+    * **> **Tempo Passado:** [Ex: 30 minutos]
+    * **> **Recursos:** [Ex: -10 Mana, -5 Stamina]
+    * **> **XP de Atributo:** [Ex: +5 Força, +3 Vigor]
+    * **> **XP de Nível:** [Ex: +4]
+    * **> **XP de Fama:** [Ex: +10]
+    * **> **XP de Classe (Novato):** [Ex: +8]
+    * **> **Itens:** [Ex: +1 Poção de Cura, -2 Ervas]
+    * **> **Condições:** [Ex: Adquirida "Envenenado"]
+
+* **Exemplo de Saída:**
+(Narrativa sobre lutar com um lobo...)
+
+> **SUMÁRIO DO TURNO**
+> **Tempo Passado:** 5 minutos
+> **Recursos:** -15 HP, -20 Stamina
+> **XP de Atributo:** +12 Força, +8 Destreza
+> **XP de Nível:** +10
+> **XP de Classe (Guerreiro):** +15
+> **Itens:** +2 Pele de Lobo
+
 --- ADDENDUM - GESTÃO DE MISSÕES ---
 O sistema de missões é o motor da narrativa guiada. Use a estrutura de Quest definida em types.ts.
 

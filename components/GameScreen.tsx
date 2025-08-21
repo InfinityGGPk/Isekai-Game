@@ -125,16 +125,37 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
   }
   
   const formatNarrative = (text: string): string => {
-    let formattedText = text
-      .replace(/\n/g, '<br />')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/^\* (.*$)/gm, '<li class="ml-4 list-disc">$1</li>');
+    let processedText = text;
+
+    // Process blockquotes as a whole block first
+    processedText = processedText.replace(/(^>.*(?:\n>.*)*)/gm, (match) => {
+      const content = match.replace(/^> ?/gm, '').replace(/\n/g, '<br />');
+      const boldedContent = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      return `<blockquote>${boldedContent}</blockquote>`;
+    });
+
+    // Split the text by blockquotes and process the rest
+    const parts = processedText.split(/(<blockquote.*?<\/blockquote>)/s);
+    
+    const finalParts = parts.map(part => {
+        if (part.startsWith('<blockquote>')) {
+            return part; // Already processed
+        }
+        // Process non-blockquote parts
+        return part
+            .replace(/\n/g, '<br />')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/<br \/>\* (.*$)/gm, '<br /><li class="ml-4 list-disc">$1</li>') // For lists that don't start the string
+            .replace(/^\* (.*$)/gm, '<li class="ml-4 list-disc">$1</li>');       // For lists that do
+    });
+
+    let html = finalParts.join('');
   
-    // Highlight level-up messages
+    // Highlight level-up messages globally
     const levelUpRegex = /(VOCÊ ATINGIU O NÍVEL \d+!|\[\w+\] aumentou para \d+!|\[\w+\] atingiu o nível \d+!)/gi;
-    formattedText = formattedText.replace(levelUpRegex, '<strong class="text-amber-400 font-bold">$1</strong>');
+    html = html.replace(levelUpRegex, '<strong class="text-amber-400 font-bold">$1</strong>');
   
-    return formattedText;
+    return html.replace(/<\/blockquote><br \/>/g, '</blockquote>'); // Cleanup
   };
 
   if (!lastTurnState) {
@@ -243,28 +264,28 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pt-12">
           {/* Left Panel: Narrative */}
           <div className="md:col-span-2 flex flex-col bg-slate-900/70 shadow-lg rounded-lg overflow-hidden">
-            
-            {/* Bloco de Imagem Gerada */}
-            {lastTurnState.ui.image_url && (
-                <div className="w-full aspect-video bg-black border-b-4 border-slate-800">
-                    <img src={lastTurnState.ui.image_url} alt={lastTurnState.ui.image_prompt || 'Cena do jogo'} className="w-full h-full object-cover" />
-                </div>
-            )}
-
-            <div className="flex-1 p-6 overflow-y-auto prose prose-invert prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-300">
-               {turnHistory.map((turn, index) => (
-                    <React.Fragment key={index}>
-                        {index > 0 && <hr className="my-6 turn-separator" />}
-                        <div className="mb-6">
-                            <div
-                                dangerouslySetInnerHTML={{ __html: formatNarrative(turn.narrative) }}
-                            />
-                        </div>
-                    </React.Fragment>
-                ))}
-
-             {isLoading && <div className="p-6"><LoadingSpinner message={loadingMessage} /></div>}
-             <div ref={endOfMessagesRef} />
+            <div className="flex-1 overflow-y-auto">
+              {turnHistory.map((turn, index) => (
+                <React.Fragment key={index}>
+                  {index > 0 && <hr className="my-6 turn-separator" />}
+                  <div className="p-6 prose prose-invert prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-300 prose-blockquote:my-4 prose-blockquote:p-3 prose-blockquote:bg-slate-800/50 prose-blockquote:border-l-4 prose-blockquote:border-slate-600 prose-blockquote:rounded-r-md">
+                    {turn.state.ui.image_url && (
+                      <div className="float-right ml-6 mb-4 w-full max-w-sm clear-right">
+                        <img 
+                          src={turn.state.ui.image_url} 
+                          alt={turn.state.ui.image_prompt || 'Cena do jogo'} 
+                          className="w-full rounded-lg shadow-xl border-2 border-slate-700" 
+                        />
+                      </div>
+                    )}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: formatNarrative(turn.narrative) }}
+                    />
+                  </div>
+                </React.Fragment>
+              ))}
+              {isLoading && <div className="p-6"><LoadingSpinner message={loadingMessage} /></div>}
+              <div ref={endOfMessagesRef} />
             </div>
 
             <div className="p-4 border-t border-slate-800">
