@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GamePhase, GameState, Turn, UIButton } from './types';
 import { INITIAL_GAME_STATE } from './constants';
-import { runGameTurn, extractJsonAndNarrative } from './services/geminiService';
+import { runGameTurn, extractJsonAndNarrative, generateImageFromPrompt } from './services/geminiService';
 import CharacterCreation from './components/CharacterCreation';
 import GameScreen from './components/GameScreen';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -211,6 +211,18 @@ const App: React.FC = () => {
 
       if (!jsonState) {
         throw new Error("A resposta da IA não continha um bloco de estado JSON válido.");
+      }
+
+      if (jsonState.ui.image_prompt && !jsonState.ui.image_url) {
+          try {
+              setLoadingMessage('O Diretor de Arte está pintando a cena...');
+              const imageUrl = await generateImageFromPrompt(jsonState.ui.image_prompt);
+              jsonState.ui.image_url = imageUrl;
+          } catch (imgError) {
+              console.error(imgError);
+              showToast(imgError instanceof Error ? imgError.message : "Erro desconhecido na imagem.");
+              jsonState.ui.image_prompt = null;
+          }
       }
       
       const cleanedNarrative = narrative.trim();

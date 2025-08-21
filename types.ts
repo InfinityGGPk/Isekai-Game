@@ -172,6 +172,12 @@ export interface CirculoIntimo {
   };
 }
 
+export interface PericiaInfo {
+  nivel: number;
+  xp: number;
+  xp_next: number;
+}
+
 export interface ClassInfo {
   nome: string;
   nivel: number;
@@ -194,6 +200,7 @@ export interface PlayerState {
   nome: string;
   idade: number;
   origem: string;
+  visual_description: string;
   atributos: PlayerAttributes;
   atributos_xp: Record<keyof PlayerAttributes, PlayerAttributeXP>;
   derivados: PlayerDerivatives;
@@ -203,7 +210,7 @@ export interface PlayerState {
   equipamento: Equipment;
   sintonias: { usadas: number; max: number };
   moedas: { cobre: number; prata: number; ouro: number };
-  pericias: Record<string, number>;
+  pericias: Record<string, number | PericiaInfo>;
   condicoes: (string | Condition)[];
   fama: FameInfo;
   patente: string;
@@ -369,6 +376,8 @@ export interface UIState {
   settings: UISettings;
   toast: string | null;
   save_hint: string | null;
+  image_prompt: string | null;
+  image_url: string | null;
   intents: UIIntents;
 }
 

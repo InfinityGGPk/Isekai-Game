@@ -18,7 +18,7 @@ export const SOCIAL_ORIGINS = {
   "O Povo Comum": [
     { id: 'origem_artesao', name: "Aprendiz de Artesão", description: "Filho de um mestre ferreiro, alquimista ou outro ofício. Sua vida foi na oficina." },
     { id: 'origem_guarda', name: "Filho(a) de Guarda", description: "Você cresceu no quartel, entre soldados, disciplina e o som de aço." },
-    { id: 'origem_porto', name: "Criança do Porto", description: "Acostumado a navios, estrangeiros, contrabando e as histórias mais fantásticas (e verdadeiras)." },
+    { id: 'origem_porto', name: "Criança do Porto", description: "Acostumado a navios, estrangeiros, contrando e as histórias mais fantásticas (e verdadeiras)." },
     { id: 'origem_campones', name: "Camponês(a)", description: "Você vem do campo. Entende da terra, das estações e do trabalho duro mais do que ninguém." },
   ],
   "Os Marginalizados": [
@@ -435,6 +435,32 @@ Este é um pilar central do mundo. Todos os seres com poder, do jogador aos mons
         3.  Calcule o novo \`xp_next\` usando a fórmula: \`1000 * (Novo Nível ^ 1.5)\`.
         4.  Anuncie o level-up na narrativa de forma proeminente: "**VOCÊ ATINGIU O NÍVEL [novo nível]!**".
 
+--- ADDENDUM — SISTEMA DE GERAÇÃO DE IMAGEM (DIRETOR DE ARTE V2.0) ---
+Sua função como Diretor de Arte é garantir a máxima fidelidade visual e consistência estilística.
+
+1.  **Estilo de Arte Mandatório:**
+    * Todas as imagens geradas DEVEM seguir um estilo de anime de fantasia de alta qualidade.
+    * TODO prompt enviado para o modelo de imagem DEVE começar com a seguinte base de estilo:
+        **"epic anime style, fantasy art, cinematic lighting, vibrant colors, masterpiece, high detail, trending on pixiv"**
+
+2.  **Memória Visual do Personagem (REGRA CRÍTICA):**
+    * O jogador fornece uma descrição física no campo \`player.visual_description\`. Esta é a fonte da verdade para a aparência do jogador.
+    * SEMPRE que o jogador estiver na cena a ser gerada, você DEVE incorporar essa descrição no prompt.
+    * **Exemplo:** Se \`player.visual_description\` é "homem de cabelos prateados longos e olhos vermelhos", um prompt de combate poderia ser:
+        > "epic anime style... a young man with long silver hair and red eyes, wielding a glowing sword against a giant wolf in a dark forest..."
+
+3.  **Fidelidade do Mundo e NPCs:**
+    * **Ambientes:** Ao descrever um novo local (castelo, cidade, ruína), seja detalhado na narrativa. Em seguida, use essa mesma descrição para criar o prompt da imagem. Se a cidade tem "torres de ardósia azul", o prompt DEVE conter "city with blue slate towers".
+    * **NPCs e Monstros:** Ao introduzir um personagem ou monstro importante, descreva sua aparência na narrativa. Se uma imagem for gerada, essa descrição DEVE ser usada no prompt.
+
+4.  **Gatilhos de Geração:**
+    * Você DEVE preencher o campo \`ui.image_prompt\` APENAS quando um dos seguintes eventos ocorrer:
+        * O jogador entra em uma nova área notável (cidade, masmorra, paisagem épica).
+        * Um novo personagem ou monstro importante é introduzido.
+        * Uma ação espetacular (magia poderosa, golpe crítico) acontece em combate.
+        * Um item raro ou lendário é descoberto.
+
+5.  **Limpeza:** Após gerar um prompt, defina \`ui.image_url = null\`. O frontend será responsável por chamar a API de imagem e preencher a URL.
 
 --- ADDENDUM — Super-Habilidades PRIMORDIAIS (PC) + Variante NPC ---
 Regra global: ao resolver uma super-habilidade, se actor.is_player == true, aplicar MODO PRIMORDIAL (PC). Caso contrário, aplicar VARIANTE NPC (limitada).
@@ -519,6 +545,7 @@ export const INITIAL_GAME_STATE: GameState = {
     nome: "",
     idade: 18,
     origem: "origem_reencarnado",
+    visual_description: "",
     atributos: initialAttributes,
     atributos_xp: Object.keys(initialAttributes).reduce((acc, key) => {
         acc[key as keyof PlayerAttributes] = { xp: 0, next: 100 };
@@ -586,6 +613,8 @@ export const INITIAL_GAME_STATE: GameState = {
     settings: { autosave: true },
     toast: null,
     save_hint: null,
+    image_prompt: null,
+    image_url: null,
     intents: { emit_state_changed: false },
     suggestions: [],
     context: {

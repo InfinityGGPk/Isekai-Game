@@ -243,6 +243,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, turnHistory, onSendI
         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pt-12">
           {/* Left Panel: Narrative */}
           <div className="md:col-span-2 flex flex-col bg-slate-900/70 shadow-lg rounded-lg overflow-hidden">
+            
+            {/* Bloco de Imagem Gerada */}
+            {lastTurnState.ui.image_url && (
+                <div className="w-full aspect-video bg-black border-b-4 border-slate-800">
+                    <img src={lastTurnState.ui.image_url} alt={lastTurnState.ui.image_prompt || 'Cena do jogo'} className="w-full h-full object-cover" />
+                </div>
+            )}
+
             <div className="flex-1 p-6 overflow-y-auto prose prose-invert prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-300">
                {turnHistory.map((turn, index) => (
                     <React.Fragment key={index}>

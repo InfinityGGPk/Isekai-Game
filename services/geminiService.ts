@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { GameState } from '../types';
 import { GAME_MASTER_PROMPT } from '../constants';
@@ -23,14 +22,12 @@ export const runGameTurn = async (history: ChatHistory): Promise<string> => {
                 }
             });
 
-            // The .text accessor will throw an error if the prompt was blocked.
+            // The .text accessor will throw an error if the prompt was blocked,
+            // which will be caught by the `catch` block.
             const text = response.text;
 
-            // Check for other non-blocking issues.
+            // It's still possible to get an empty string for other reasons.
             if (!text) {
-                 if (response.promptFeedback?.blockReason) {
-                    throw new Error(`A IA bloqueou a resposta. Motivo: ${response.promptFeedback.blockReason}`);
-                 }
                  if (response.candidates?.[0]?.finishReason && response.candidates[0].finishReason !== 'STOP') {
                     throw new Error(`A geração de texto foi interrompida. Motivo: ${response.candidates[0].finishReason}`);
                  }
@@ -67,7 +64,7 @@ export const runGameTurn = async (history: ChatHistory): Promise<string> => {
         throw new Error("Cota da API excedida. Por favor, verifique seu plano e detalhes de faturamento.");
     }
     
-    if (lastError instanceof Error && lastError.message.toLowerCase().includes("blocked")) {
+    if (lastError instanceof Error && (lastError.message.toLowerCase().includes("blocked") || lastError.message.toLowerCase().includes("safety"))) {
         throw new Error("A resposta da IA foi bloqueada por razões de segurança. Tente uma ação diferente.");
     }
 
@@ -76,6 +73,47 @@ export const runGameTurn = async (history: ChatHistory): Promise<string> => {
     }
 
     throw new Error("Falha na comunicação com a IA. Verifique sua chave de API e a conexão.");
+};
+
+export const generateImageFromPrompt = async (prompt: string): Promise<string> => {
+    try {
+        console.log(`Gerando imagem com o prompt: ${prompt}`);
+        
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const response = await ai.models.generateImages({
+            model: 'imagen-3.0-generate-002',
+            prompt: prompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '16:9',
+            },
+        });
+
+        // Use optional chaining for safer access
+        const image = response.generatedImages?.[0]?.image;
+
+        if (!image || !image.imageBytes) {
+            console.error("Image generation response was empty or invalid:", response);
+            throw new Error("A API de imagem não retornou uma imagem válida.");
+        }
+
+        const base64ImageBytes: string = image.imageBytes;
+        
+        const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
+        return imageUrl;
+
+    } catch (error) {
+        console.error("Error calling Image Generation API:", error);
+        if (error instanceof Error) {
+             // Check for specific safety/blocking error messages from the API
+             if (error.message.toLowerCase().includes('blocked') || error.message.toLowerCase().includes('safety')) {
+                 throw new Error("A geração da imagem foi bloqueada por razões de segurança.");
+             }
+             throw new Error(`Falha ao gerar a imagem da cena: ${error.message}`);
+        }
+        throw new Error("Falha ao gerar a imagem da cena. Causa desconhecida.");
+    }
 };
 
 export const extractJsonAndNarrative = (responseText: string): { narrative: string, jsonState: GameState | null } => {

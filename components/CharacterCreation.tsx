@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { PlayerState, PlayerAttributes } from '../types';
 import { ATTRIBUTE_POINTS, MIN_ATTRIBUTE, MAX_ATTRIBUTE, INITIAL_GAME_STATE, ATTRIBUTE_DESCRIPTIONS, SUPER_SKILLS, SOCIAL_ORIGINS } from '../constants';
@@ -181,6 +182,16 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
                       </ul>
                   </div>
                 )}
+              </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-1">Aparência do Personagem</label>
+                <textarea 
+                  id="description" 
+                  value={player.visual_description || ''} 
+                  onChange={e => setPlayer({...player, visual_description: e.target.value})} 
+                  className="w-full h-24 px-3 py-2 text-slate-200 bg-[#1e293b] border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Ex: Cabelos prateados longos, olhos vermelhos, magro, com uma cicatriz no rosto..."
+                />
               </div>
                <div>
                   <h3 className="text-lg font-bold text-amber-400 font-cinzel mb-2">ORIGEM SOCIAL</h3>

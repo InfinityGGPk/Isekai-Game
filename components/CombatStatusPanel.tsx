@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GameState, Condition } from '../types';
+import { GameState, Condition, PericiaInfo } from '../types';
 
 const ResourceBar: React.FC<{ value: number; max: number; label: string; color: string }> = ({ value, max, label, color }) => {
     const percentage = max > 0 ? Math.min(100, (value / max) * 100) : 0;
@@ -46,13 +46,18 @@ const CombatStatusPanel: React.FC<CombatStatusPanelProps> = ({ gameState }) => {
 
     if (!combat) return null;
 
+    const combatPericia = player.pericias.Combate;
+    const combatLevel = typeof combatPericia === 'object' && combatPericia !== null && 'nivel' in combatPericia
+        ? (combatPericia as PericiaInfo).nivel
+        : combatPericia as number;
+
     return (
         <div className="flex-1 bg-slate-900/70 shadow-lg rounded-lg p-4 flex flex-col">
             <h2 className="text-xl font-bold text-red-500 mb-3 pb-2 border-b border-slate-800 font-cinzel tracking-wider">COMBATE</h2>
             <div className="flex-1 overflow-y-auto -mr-2 pr-2">
                 <CombatantStatus 
                     name={player.nome}
-                    level={player.pericias.Combate || 1}
+                    level={combatLevel || 1}
                     hp={player.derivados.HP}
                     hpMax={player.derivados.HP_max}
                     mana={player.derivados.Mana}

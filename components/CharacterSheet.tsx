@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PlayerState, PlayerAttributes, Condition, Skill } from '../types';
+import { PlayerState, PlayerAttributes, Condition, Skill, PericiaInfo } from '../types';
 import { SKILL_DESCRIPTIONS } from '../constants';
 
 // --- Componentes de UI Internos (Helpers) ---
@@ -103,17 +102,41 @@ const CharacterSheet: React.FC<{ player: PlayerState, onClose: () => void }> = (
                 <div>
                     <h3 className="text-xl font-bold text-amber-300 mb-3 font-cinzel">Perícias</h3>
                     <ul className="space-y-2">
-                      {Object.keys(player.pericias).map((key) => (
-                        <li key={key} className="flex justify-between items-center bg-slate-700/50 px-3 py-1 rounded text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">{key}</span>
-                            <Tooltip text={SKILL_DESCRIPTIONS[key] || "Descrição não disponível."}>
-                               <div className="cursor-help w-4 h-4 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full text-xs font-bold border border-slate-600 select-none">?</div>
-                            </Tooltip>
-                          </div>
-                          <span className="font-bold">{player.pericias[key]}</span>
-                        </li>
-                      ))}
+                      {Object.keys(player.pericias).map((key) => {
+                        const periciaValue = player.pericias[key as keyof typeof player.pericias];
+                        
+                        let displayValue: number;
+                        let periciaData: PericiaInfo | null = null;
+
+                        if (typeof periciaValue === 'number') {
+                          displayValue = periciaValue;
+                        } else {
+                          // The type is a union (number | PericiaInfo), so if it's not a number, it must be PericiaInfo.
+                          periciaData = periciaValue;
+                          displayValue = periciaValue.nivel;
+                        }
+
+                        const hasProgressBar = periciaData && periciaData.xp !== undefined && periciaData.xp_next && periciaData.xp_next > 0;
+
+                        return (
+                          <li key={key} className="bg-slate-700/50 p-2 rounded text-sm">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">{key}</span>
+                                <Tooltip text={SKILL_DESCRIPTIONS[key] || "Descrição não disponível."}>
+                                   <div className="cursor-help w-4 h-4 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full text-xs font-bold border border-slate-600 select-none">?</div>
+                                </Tooltip>
+                              </div>
+                              <span className="font-bold">{displayValue}</span>
+                            </div>
+                            {hasProgressBar && (
+                                <div className="mt-1">
+                                    <ProgressBar value={periciaData.xp!} max={periciaData.xp_next!} label="XP" />
+                                </div>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                 </div>
             </div>
