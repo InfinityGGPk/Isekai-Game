@@ -198,27 +198,27 @@ A origem social e a idade do personagem são escolhas CRÍTICAS que definem o in
 Incorpore os efeitos da idade na narrativa (ex: um idoso resolve um enigma com facilidade; uma criança passa despercebida).
 
 --- ADDENDUM — COERÊNCIA DE ORIGEM E RANK INICIAL (V2) ---
-Esta regra é mandatória para o primeiro turno do jogo, após a criação do personagem. O Rank inicial (`player.patente`) DEVE refletir a Origem Social (`player.origem`).
+Esta regra é mandatária para o primeiro turno do jogo, após a criação do personagem. O Rank inicial (\`player.patente\`) DEVE refletir a Origem Social (\`player.origem\`).
 
 * **Mapeamento Obrigatório:**
     * **Nobreza de Sangue:**
-        * 'origem_real': Patente "Príncipe Herdeiro"
-        * 'origem_ducado': Patente "Jovem Duque/Duquesa"
-        * 'origem_condado': Patente "Nobre de Condado"
-        * 'origem_baronato': Patente "Nobre de Baronato"
-        * 'origem_nobreza_caida': Patente "Nobre Exilado"
+        * origem_real: Patente "Príncipe Herdeiro"
+        * origem_ducado: Patente "Jovem Duque/Duquesa"
+        * origem_condado: Patente "Nobre de Condado"
+        * origem_baronato: Patente "Nobre de Baronato"
+        * origem_nobreza_caida: Patente "Nobre Exilado"
     * **Classes Privilegiadas:**
-        * 'origem_alto_clero': Patente "Acólito de Elite"
-        * 'origem_magocrata': Patente "Aprendiz Arcano"
-        * 'origem_mercador_magnata': Patente "Herdeiro Mercante"
-        * 'origem_erudito_recluso': Patente "Erudito"
+        * origem_alto_clero: Patente "Acólito de Elite"
+        * origem_magocrata: Patente "Aprendiz Arcano"
+        * origem_mercador_magnata: Patente "Herdeiro Mercante"
+        * origem_erudito_recluso: Patente "Erudito"
     * **Os Marginalizados:**
-        * 'origem_criminoso': Patente "Fora da Lei"
-        * 'origem_gladiador_escravo': Patente "Gladiador Marcado"
-        * 'origem_tribal': Patente "Guerreiro Tribal"
+        * origem_criminoso: Patente "Fora da Lei"
+        * origem_gladiador_escravo: Patente "Gladiador Marcado"
+        * origem_tribal: Patente "Guerreiro Tribal"
     * **Padrão (Plebeu):** Para todas as outras origens, a patente inicial é "Plebeu".
 
-* **Aplicação:** No primeiro turno, ajuste a `patente` e a narrativa inicial para refletir esta escolha.
+* **Aplicação:** No primeiro turno, ajuste a \`patente\` e a narrativa inicial para refletir esta escolha.
 
 --- ADDENDUM — FICHA E EQUIPAMENTOS (PRIORIDADE MÁXIMA) ---
 Prioridade: substitui regras anteriores de equipamento. PC continua em modo poderoso (sem “nerf em cena”); NPCs têm limitações.
@@ -620,7 +620,7 @@ export const ATTRIBUTE_DESCRIPTIONS: Record<keyof PlayerAttributes, string> = {
     Força: "Determina o dano físico, a capacidade de carga (Carga) e o sucesso em testes de força bruta.",
     Agilidade: "Influencia a iniciativa em combate, a esquiva, a precisão com armas à distância e a perícia em tarefas delicadas.",
     Vigor: "Define os Pontos de Vida (HP) e a Vigor (Stamina). Aumenta a resistência a venenos, doenças e exaustão.",
-    Inteligência: "Governa a potência de magias, a capacidade de aprendizado, a criação de itens e a resolução de quebra--cabeças.",
+    Inteligência: "Governa a potência de magias, a capacidade de aprendizado, a criação de itens e a resolução de quebra-cabeças.",
     Vontade: "Controla os Pontos de Foco e a Sanidade. Oferece resistência contra ataques mentais, medo e corrupção.",
     Percepção: "Afeta a capacidade de notar detalhes, encontrar armadilhas, descobrir segredos e a precisão de ataques à distância.",
     Carisma: "Mede a força da sua personalidade. Influencia o diálogo, a negociação, a liderança e a lealdade de companheiros.",
