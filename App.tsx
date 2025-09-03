@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { GamePhase, GameState, Turn, UIButton } from './types';
 import { INITIAL_GAME_STATE } from './constants';
 import { runGameTurn, extractJsonAndNarrative, generateImageFromPrompt } from './services/geminiService';
@@ -11,48 +12,8 @@ import Toast from './components/Toast';
 
 const SAVE_GAME_KEY = 'isekaiAdventureSave_v2';
 
-const App: React.FC = () => {
-  const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.LOADING);
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [turnHistory, setTurnHistory] = useState<Turn[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
-  const [chatHistory, setChatHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
-  const [saveExists, setSaveExists] = useState<boolean>(false);
-  const [toast, setToast] = useState<{ message: string; key: number } | null>(null);
-
-  useEffect(() => {
-    try {
-      const savedData = localStorage.getItem(SAVE_GAME_KEY);
-      if (savedData) {
-        setSaveExists(true);
-      }
-    } catch (error) {
-      console.error("Could not check for saved game:", error);
-    }
-    setGamePhase(GamePhase.START_SCREEN);
-  }, []);
-  
-  const showToast = useCallback((message: string) => {
-    setToast({ message, key: Date.now() });
-  }, []);
-
-  const saveGame = useCallback((stateToSave: GameState, currentTurnHistory: Turn[], currentChatHistory: { role: string, parts: { text: string }[] }[]) => {
-    try {
-      const dataToSave = {
-        gameState: stateToSave,
-        turnHistory: currentTurnHistory,
-        chatHistory: currentChatHistory
-      };
-      localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(dataToSave));
-      setSaveExists(true);
-    } catch (error) {
-      console.error("Failed to save game:", error);
-      showToast("Falha ao salvar o jogo.");
-    }
-  }, [showToast]);
-
-  const upgradeSaveFile = (savedGameState: GameState) => {
+// Moved outside component as it's a pure function and doesn't depend on props or state
+const upgradeSaveFile = (savedGameState: GameState) => {
       // --- UPGRADE SAVE FILE ---
       if (!savedGameState.player.equipamento) {
           console.log("Old save file detected. Upgrading with Equipment system.");
@@ -111,7 +72,39 @@ const App: React.FC = () => {
       }
       // -------------------------
       return savedGameState;
-  }
+}
+
+const AppContent: React.FC = () => {
+  const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.LOADING);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [turnHistory, setTurnHistory] = useState<Turn[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [chatHistory, setChatHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
+  const [saveExists, setSaveExists] = useState<boolean>(false);
+  const [toast, setToast] = useState<{ message: string; key: number } | null>(null);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const showToast = useCallback((message: string) => {
+    setToast({ message, key: Date.now() });
+  }, []);
+
+  const saveGame = useCallback((stateToSave: GameState, currentTurnHistory: Turn[], currentChatHistory: { role: string, parts: { text: string }[] }[]) => {
+    try {
+      const dataToSave = {
+        gameState: stateToSave,
+        turnHistory: currentTurnHistory,
+        chatHistory: currentChatHistory
+      };
+      localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(dataToSave));
+      setSaveExists(true);
+    } catch (error) {
+      console.error("Failed to save game:", error);
+      showToast("Falha ao salvar o jogo.");
+    }
+  }, [showToast]);
 
   const loadGame = useCallback(() => {
     setIsLoading(true);
@@ -128,21 +121,55 @@ const App: React.FC = () => {
         setChatHistory(savedChatHistory || []);
         setGamePhase(GamePhase.PLAYING);
         showToast("Jogo carregado com sucesso.");
+      } else {
+          throw new Error("No saved data found.");
       }
     } catch (error) {
       console.error("Failed to load game:", error);
       showToast("Erro ao carregar. Iniciando novo jogo.");
       localStorage.removeItem(SAVE_GAME_KEY);
       setSaveExists(false);
-      setGamePhase(GamePhase.CREATION);
+      setGamePhase(GamePhase.START_SCREEN);
     } finally {
         setIsLoading(false);
         setLoadingMessage('');
     }
   }, [showToast]);
 
+  // Effect to handle initial load and routing
+  useEffect(() => {
+    const savedData = localStorage.getItem(SAVE_GAME_KEY);
+    const saveFileExists = !!savedData;
+    setSaveExists(saveFileExists);
+
+    const path = location.pathname;
+
+    if (path === '/play' && saveFileExists) {
+      loadGame();
+    } else if (path === '/creation') {
+      setGamePhase(GamePhase.CREATION);
+    } else {
+      setGamePhase(GamePhase.START_SCREEN);
+    }
+  }, []); // Run only once on mount
+
+  // Effect to sync URL with gamePhase
+  useEffect(() => {
+    if (gamePhase === GamePhase.LOADING) return;
+
+    const targetPath = {
+      [GamePhase.START_SCREEN]: '/',
+      [GamePhase.CREATION]: '/creation',
+      [GamePhase.PLAYING]: '/play',
+    }[gamePhase];
+
+    if (targetPath && location.pathname !== targetPath) {
+      navigate(targetPath);
+    }
+  }, [gamePhase, navigate, location.pathname]);
+
+
   const startNewGame = useCallback(() => {
-    // A linha com "window.confirm" foi removida para garantir execução imediata.
     localStorage.removeItem(SAVE_GAME_KEY);
     setGameState(null);
     setTurnHistory([]);
@@ -154,11 +181,7 @@ const App: React.FC = () => {
   const exportGame = useCallback(() => {
     if (!gameState) return;
     try {
-        const dataToSave = {
-            gameState,
-            turnHistory,
-            chatHistory
-        };
+        const dataToSave = { gameState, turnHistory, chatHistory };
         const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -208,10 +231,7 @@ const App: React.FC = () => {
   
   const processTurnAtomically = useCallback(async (responseText: string, originalUserInput: string, currentGameState: GameState, currentTurnHistory: Turn[], currentChatHistory: any[]) => {
       const { narrative, jsonState } = extractJsonAndNarrative(responseText);
-
-      if (!jsonState) {
-        throw new Error("A resposta da IA não continha um bloco de estado JSON válido.");
-      }
+      if (!jsonState) throw new Error("A resposta da IA não continha um bloco de estado JSON válido.");
 
       if (jsonState.ui.image_prompt && !jsonState.ui.image_url) {
           try {
@@ -226,29 +246,24 @@ const App: React.FC = () => {
       }
       
       const cleanedNarrative = narrative.trim();
-
       const newTurn: Turn = { narrative: cleanedNarrative, state: jsonState };
-      
       const updatedTurnHistory = [...currentTurnHistory, newTurn];
       const updatedChatHistory = [
         ...currentChatHistory,
-        { role: 'user', parts: [{ text: originalUserInput }] }, // Only add the short user input
+        { role: 'user', parts: [{ text: originalUserInput }] },
         { role: 'model', parts: [{ text: cleanedNarrative }] },
       ];
 
-      // Atomic state update
       setGameState(jsonState);
       setTurnHistory(updatedTurnHistory);
       setChatHistory(updatedChatHistory);
 
-      if (jsonState.ui?.toast) {
-        showToast(jsonState.ui.toast);
-      }
+      if (jsonState.ui?.toast) showToast(jsonState.ui.toast);
       
       if (jsonState.ui?.settings?.autosave && jsonState.ui?.intents?.emit_state_changed) {
           saveGame(jsonState, updatedTurnHistory, updatedChatHistory);
       }
-      return jsonState; // Return new state for manual save
+      return jsonState;
   }, [saveGame, showToast]);
 
   const handleSendInput = useCallback(async (input: string, stateOverride: GameState | null = null, historyOverride: Turn[] | null = null) => {
@@ -268,13 +283,11 @@ ESTADO ATUAL DO JOGO PARA ESTE TURNO:
 ${JSON.stringify(currentState, null, 2)}
 \`\`\`
 `;
-    
     const historyForApi = [...currentChatHistory, { role: 'user', parts: [{ text: userPromptForApi }] }];
 
     try {
       const responseText = await runGameTurn(historyForApi);
       await processTurnAtomically(responseText, input, currentState, currentTurnHistory, currentChatHistory);
-
     } catch (error) {
       console.error("Erro ao processar o turno:", error);
       const errorMessage = error instanceof Error ? error.message : "Um erro desconhecido ocorreu.";
@@ -288,10 +301,7 @@ ${JSON.stringify(currentState, null, 2)}
   const handleCharacterCreation = useCallback((playerData: GameState['player']) => {
     const startingState: GameState = {
       ...INITIAL_GAME_STATE,
-      player: {
-        ...INITIAL_GAME_STATE.player,
-        ...playerData,
-      },
+      player: { ...INITIAL_GAME_STATE.player, ...playerData },
       seed: Math.floor(Math.random() * 1000000).toString(),
     };
     
@@ -317,70 +327,50 @@ ${JSON.stringify(currentState, null, 2)}
 
   const handleUiAction = useCallback(async (button: UIButton) => {
       if (!gameState) return;
-      
       const actionId = button.id;
-      
       switch (actionId) {
-          case 'new':
-              startNewGame();
-              break;
-          case 'save':
-              saveGame(gameState, turnHistory, chatHistory);
-              showToast("Jogo salvo com sucesso!");
-              break;
-          case 'load':
-              loadGame();
-              break;
-          case 'export':
-              exportGame();
-              break;
-          case 'import':
-              importGame();
-              break;
-          case 'autosave': {
-              const newAutosaveState = !gameState.ui?.settings?.autosave;
-              const command = newAutosaveState ? "Ativar o salvamento automático" : "Desativar o salvamento automático";
-              handleSendInput(command);
-              break;
-          }
-          default:
-              console.log(`UI Action (sem manipulação): ${actionId}`);
+          case 'new': startNewGame(); break;
+          case 'save': saveGame(gameState, turnHistory, chatHistory); showToast("Jogo salvo com sucesso!"); break;
+          case 'load': loadGame(); break;
+          case 'export': exportGame(); break;
+          case 'import': importGame(); break;
+          case 'autosave': handleSendInput(!gameState.ui?.settings?.autosave ? "Ativar o salvamento automático" : "Desativar o salvamento automático"); break;
+          default: console.log(`UI Action (sem manipulação): ${actionId}`);
       }
   }, [gameState, turnHistory, chatHistory, startNewGame, saveGame, loadGame, exportGame, importGame, handleSendInput, showToast]);
 
-  const renderContent = () => {
-    if (isLoading && gamePhase !== GamePhase.PLAYING) {
-        return <div className="flex justify-center items-center h-screen"><LoadingSpinner message={loadingMessage || "Carregando..."} /></div>;
-    }
-
-    switch (gamePhase) {
-      case GamePhase.LOADING:
-        return <div className="flex justify-center items-center h-screen"><LoadingSpinner message="Carregando..." /></div>;
-      case GamePhase.START_SCREEN:
-        return <StartScreen onContinue={loadGame} onNewGame={startNewGame} hasSave={saveExists} onImport={importGame} />;
-      case GamePhase.CREATION:
-        return <CharacterCreation onFinish={handleCharacterCreation} />;
-      case GamePhase.PLAYING:
-        return (
-          <GameScreen
-            gameState={gameState}
-            turnHistory={turnHistory}
-            onSendInput={handleSendInput}
-            isLoading={isLoading}
-            loadingMessage={loadingMessage}
-            onUiAction={handleUiAction}
-          />
-        );
-      default:
-        return <div className="flex justify-center items-center h-screen"><LoadingSpinner message="Carregando..." /></div>;
-    }
-  };
+  if (gamePhase === GamePhase.LOADING || (isLoading && gamePhase !== GamePhase.PLAYING)) {
+      return <div className="flex justify-center items-center h-screen"><LoadingSpinner message={loadingMessage || "Carregando..."} /></div>;
+  }
 
   return (
     <>
-      {renderContent()}
+      <Routes>
+        <Route path="/" element={<StartScreen onContinue={loadGame} onNewGame={startNewGame} hasSave={saveExists} onImport={importGame} />} />
+        <Route path="/creation" element={<CharacterCreation onFinish={handleCharacterCreation} />} />
+        <Route path="/play" element={
+            gameState ? (
+              <GameScreen
+                gameState={gameState}
+                turnHistory={turnHistory}
+                onSendInput={handleSendInput}
+                isLoading={isLoading}
+                loadingMessage={loadingMessage}
+                onUiAction={handleUiAction}
+              />
+            ) : <div className="flex justify-center items-center h-screen"><LoadingSpinner message="Preparando aventura..." /></div>
+        } />
+      </Routes>
       <Toast toast={toast} />
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <HashRouter>
+      <AppContent />
+    </HashRouter>
   );
 };
 

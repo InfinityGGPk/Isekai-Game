@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { PlayerState, PlayerAttributes } from '../types';
 import { ATTRIBUTE_POINTS, MIN_ATTRIBUTE, MAX_ATTRIBUTE, INITIAL_GAME_STATE, ATTRIBUTE_DESCRIPTIONS, SUPER_SKILLS, SOCIAL_ORIGINS } from '../constants';
@@ -37,6 +38,63 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children }) => {
 };
 // -------------------------
 
+// --- Appearance Data ---
+const appearanceOptions = {
+    cabelo: [
+        "Cabelos negros, curtos e disciplinados.",
+        "Cabelos castanhos de comprimento médio, práticos para a aventura.",
+        "Cabelos loiros e longos, frequentemente amarrados.",
+        "Cabelos ruivos, selvagens e indomados.",
+        "Cabelos brancos e curtos, de aparência serena.",
+        "Cabelos prateados e etéreos, que brilham sob a luz.",
+        "Cabeça raspada, uma escolha de praticidade ou disciplina.",
+        "Cabelos azuis vibrantes, presos em tranças complexas."
+    ],
+    olhos: [
+        "Olhos castanhos, transmitindo uma sensação de confiança.",
+        "Olhos azuis brilhantes, como o céu após a tempestade.",
+        "Olhos verdes penetrantes, que parecem ler a alma.",
+        "Olhos vermelhos intensos, raros e muitas vezes temidos.",
+        "Olhos violeta, sugerindo uma forte conexão com o arcano.",
+        "Olhos cinzentos, frios, calculistas e analíticos.",
+        "Olhos cor de âmbar, calorosos e ferozes como os de um predador.",
+        "Olhos negros, profundos e insondáveis."
+    ],
+    pele: [
+        "Pele pálida, raramente tocada pelo sol.",
+        "Pele clara com algumas sardas discretas no rosto.",
+        "Pele bronzeada pelo sol de longas viagens.",
+        "Pele morena, de aspecto saudável e robusto.",
+        "Pele escura, lisa e uniforme.",
+        "Pele oliva, comum em terras ao sul."
+    ],
+    detalhes: [
+        "O rosto é limpo, sem marcas distintivas.",
+        "Uma proeminente cicatriz cruza o olho esquerdo.",
+        "Tatuagens tribais complexas adornam os braços.",
+        "Uma pequena marca de nascença tem o formato de uma estrela.",
+        "Olheiras profundas indicam noites sem dormir.",
+        "Usa um brinco de prata simples na orelha direita."
+    ],
+    corpo: [
+        "Porte físico magro e esguio, priorizando a agilidade.",
+        "Corpo atlético e bem definido, um equilíbrio entre força e velocidade.",
+        "Constituição robusta e imponente, de grande força física.",
+        "Estatura baixa e compacta, mas surpreendentemente forte.",
+        "Estatura alta e elegante, com membros longos.",
+        "Corpo de constituição mediana, sem características extremas."
+    ]
+};
+
+const appearanceCategories: Record<keyof typeof appearanceOptions, string> = {
+    cabelo: "Cabelo",
+    olhos: "Olhos",
+    pele: "Pele",
+    detalhes: "Detalhes",
+    corpo: "Corpo",
+};
+
+
 const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
   const [step, setStep] = useState(1);
   const [player, setPlayer] = useState<Partial<PlayerState>>({
@@ -46,6 +104,13 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
   });
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [ageModifiers, setAgeModifiers] = useState<Partial<PlayerAttributes>>({});
+  const [appearanceSelections, setAppearanceSelections] = useState({
+      cabelo: 0,
+      olhos: 0,
+      pele: 0,
+      detalhes: 0,
+      corpo: 0,
+  });
 
   useEffect(() => {
     if(player.idade !== undefined) {
@@ -53,6 +118,13 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
     }
   }, [player.idade]);
 
+  useEffect(() => {
+    const description = (Object.keys(appearanceCategories) as Array<keyof typeof appearanceCategories>)
+        .map(key => appearanceOptions[key][appearanceSelections[key]])
+        .join(' ');
+
+    setPlayer(prev => ({ ...prev, visual_description: description }));
+  }, [appearanceSelections]);
 
   const totalPointsUsed = useMemo(() => {
     if (!player.atributos) return 0;
@@ -130,6 +202,30 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
     });
   };
 
+  const handleAppearanceChange = (category: keyof typeof appearanceOptions, direction: number) => {
+    setAppearanceSelections(prev => {
+        const options = appearanceOptions[category];
+        const currentIndex = prev[category];
+        let nextIndex = currentIndex + direction;
+        if (nextIndex < 0) {
+            nextIndex = options.length - 1;
+        } else if (nextIndex >= options.length) {
+            nextIndex = 0;
+        }
+        return { ...prev, [category]: nextIndex };
+    });
+  };
+
+  const handleRandomizeAppearance = () => {
+    setAppearanceSelections({
+        cabelo: Math.floor(Math.random() * appearanceOptions.cabelo.length),
+        olhos: Math.floor(Math.random() * appearanceOptions.olhos.length),
+        pele: Math.floor(Math.random() * appearanceOptions.pele.length),
+        detalhes: Math.floor(Math.random() * appearanceOptions.detalhes.length),
+        corpo: Math.floor(Math.random() * appearanceOptions.corpo.length),
+    });
+  };
+
   const handleFinish = () => {
     if (!player.nome || player.nome.trim() === '') {
         alert("Por favor, insira um nome para o seu personagem.");
@@ -184,14 +280,26 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onFinish }) => {
                 )}
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-1">Aparência do Personagem</label>
-                <textarea 
-                  id="description" 
-                  value={player.visual_description || ''} 
-                  onChange={e => setPlayer({...player, visual_description: e.target.value})} 
-                  className="w-full h-24 px-3 py-2 text-slate-200 bg-[#1e293b] border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  placeholder="Ex: Cabelos prateados longos, olhos vermelhos, magro, com uma cicatriz no rosto..."
-                />
+                <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-slate-300">Aparência do Personagem</label>
+                    <button onClick={handleRandomizeAppearance} className="px-3 py-1 text-xs font-bold bg-slate-700 text-amber-300 rounded-md hover:bg-slate-600 transition-colors">
+                        🎲 Aleatório
+                    </button>
+                </div>
+                <div className="space-y-2 p-3 bg-slate-900/50 rounded-md border border-slate-700">
+                    {(Object.keys(appearanceCategories) as Array<keyof typeof appearanceCategories>).map(key => (
+                        <div key={key}>
+                            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">{appearanceCategories[key]}</h4>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                                <button onClick={() => handleAppearanceChange(key, -1)} className="px-3 py-1 font-bold bg-slate-700 rounded hover:bg-slate-600 transition-colors">⬅️</button>
+                                <p className="flex-1 text-center text-slate-300 text-sm h-10 flex items-center justify-center">
+                                    {appearanceOptions[key][appearanceSelections[key]]}
+                                </p>
+                                <button onClick={() => handleAppearanceChange(key, 1)} className="px-3 py-1 font-bold bg-slate-700 rounded hover:bg-slate-600 transition-colors">➡️</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
               </div>
                <div>
                   <h3 className="text-lg font-bold text-amber-400 font-cinzel mb-2">ORIGEM SOCIAL</h3>
