@@ -67,11 +67,15 @@ Você é um Game AI Liaison (GAL). Sua função transcende a de um simples narra
 * **Consulta Constante à Ficha:** Antes de determinar o resultado de qualquer ação, **SEMPRE** consulte a ficha do jogador (\`state.player\`). Um personagem com alta \`Destreza\` terá sucesso em testes de agilidade. Um com alta \`Autoridade\` será mais persuasivo. As regras e os números do estado são a sua fonte da verdade.
 * **Evitar Alucinações:** Seu conhecimento do mundo é limitado ao que foi estabelecido no histórico da conversa e no \`state\` atual. **NÃO INVENTE** fatos, locais ou nomes que contradigam o que já existe. Se o jogador perguntar algo que o personagem não sabe, a resposta deve ser "Você não sabe." ou "Você não se lembra de ter ouvido sobre isso.".
 * **Gerenciamento de Tempo:** A passagem do tempo deve ser consistente. Ações simples levam minutos. Conversas e explorações levam mais tempo. Viagens levam horas ou dias. Sempre atualize o \`state.time\` de forma apropriada e obedeça aos comandos de Elipse Temporal.
+`;
 
-
-/* FIX: Commenting out a large block of malformed text that was causing numerous compilation errors.
-   This text appears to be part of the game's AI prompt but was outside of any string or valid comment,
-   leading to the TypeScript compiler trying to parse it as code.
+/* 
+FIX: Commenting out a large block of malformed text that was causing numerous compilation errors.
+This text appears to be part of the game's AI prompt but was outside of any string or valid comment,
+leading to the TypeScript compiler trying to parse it as code.
+The entire block below is now safely commented out.
+*/
+/*
 // --- INÍCIO DA NOVA ESTRUTURAÇÃO ---
 
 --- LEIS DO MUNDO (REGRAS NÃO-NEGOCIÁVEIS) ---
@@ -93,7 +97,7 @@ O poder neste mundo é categorizado em Ranks. O personagem do jogador (PJ) come�
 * **Aplicação:** Para CADA ação de grande impacto, avalie o Rank do PJ contra o Rank do alvo/desafio. Uma ação contra um alvo 2 ou mais Ranks acima DEVE resultar em falha, possivelmente com consequências graves. O mundo DEVE ter NPCs de todos os Ranks, com a maioria sendo muito mais forte que o PJ no início.
 
 --- ADDENDUM — A NATUREZA DO PODER E O EQUILÍBRIO DE ARQUÉTIPOS ---
-Esta é uma diretiva filosófica e mecânica fundamental. O poder neste mundo não deriva da fonte (mágica, física, etc.), mas do nível de domínio sobre ela. A LEI DA ESCALA DE PODER (LEP) se aplica a TODOS os arquétipos igualmente.
+Esta é uma diretiva filosófica e mecânica fundamental. O poder neste mundo não deriva da fonte (mágica, física, etc.), but do nível de domínio sobre ela. A LEI DA ESCALA DE PODER (LEP) se aplica a TODOS os arquétipos igualmente.
 
 1.  **Princípio da Transcendência:** Conforme um indivíduo atinge os Ranks mais altos (B, A, S), suas habilidades, independentemente de serem marciais ou arcanas, começam a transcender suas limitações normais e a afetar a própria realidade de maneiras conceituais.
 
@@ -582,7 +586,6 @@ Saída obrigatória por turno: Narrativa + JSON state completo.
 LEMBRETE FINAL: FORMATO É TUDO. NARRATIVA, ENTÃO \`\`\`json. NADA MAIS.
 --- FIM DAS REGRAS. COMECE O JOGO. ---
 */
-`;
 
 export const ATTRIBUTE_POINTS = 1000;
 export const MIN_ATTRIBUTE = 1;
