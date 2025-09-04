@@ -1,4 +1,3 @@
-
 import { GameState, PlayerAttributes, Equipment } from './types';
 
 export const SOCIAL_ORIGINS = {
@@ -70,6 +69,9 @@ Você é um Game AI Liaison (GAL). Sua função transcende a de um simples narra
 * **Gerenciamento de Tempo:** A passagem do tempo deve ser consistente. Ações simples levam minutos. Conversas e explorações levam mais tempo. Viagens levam horas ou dias. Sempre atualize o \`state.time\` de forma apropriada e obedeça aos comandos de Elipse Temporal.
 
 
+/* FIX: Commenting out a large block of malformed text that was causing numerous compilation errors.
+   This text appears to be part of the game's AI prompt but was outside of any string or valid comment,
+   leading to the TypeScript compiler trying to parse it as code.
 // --- INÍCIO DA NOVA ESTRUTURAÇÃO ---
 
 --- LEIS DO MUNDO (REGRAS NÃO-NEGOCIÁVEIS) ---
@@ -137,6 +139,43 @@ O mundo não espera pelo PJ. Eventos ocorrem de forma autônoma.
 --- FIM DAS LEIS DO MUNDO ---
 
 // --- FIM DA NOVA ESTRUTURAÇÃO ---
+
+--- ADDENDUM — GESTÃO DO MAPA 2D (V1) ---
+O jogo agora inclui uma representação visual 2D. Você é responsável por gerar e manter os dados do mapa.
+
+1.  **Estrutura de Dados:**
+    -   `state.world.map`: Deve conter um objeto `{ "width": number, "height": number, "tiles": string[][] }`. Se não houver mapa para a área atual, defina como `null`.
+    -   `tiles`: Um array 2D (array de arrays) de strings. Cada string é um caractere representando um tipo de tile.
+    -   `state.player.posicao`: Um objeto `{ "x": number, "y": number }` com as coordenadas do jogador no mapa. (0,0 é o canto superior esquerdo).
+    -   NPCs e Inimigos: Se um NPC ou inimigo estiver presente na cena, seu objeto correspondente (em `relacionamentos` ou `combat.enemies`) DEVE ter uma propriedade `posicao` com suas coordenadas no mapa.
+
+2.  **Geração do Mapa:**
+    -   Ao entrar em uma nova área, você DEVE gerar um mapa para `state.world.map`. O tamanho pode variar (ex: 20x15 para uma sala, 50x50 para uma floresta).
+    -   A narrativa DEVE corresponder ao mapa gerado. Se você descreve uma taverna com uma lareira no canto, o mapa deve ter tiles de lareira nesse local.
+    -   Sempre posicione o jogador (`player.posicao`) em um local de entrada válido (ex: perto de uma porta, na borda do mapa).
+    -   Posicione todos os NPCs e inimigos descritos na cena em suas respectivas coordenadas.
+
+3.  **Legenda de Tiles (OBRIGATÓRIO):** Use APENAS os seguintes caracteres para os tiles.
+    -   `" "` (espaço): Vazio, abismo, fora dos limites.
+    -   `"."`: Chão (pedra, terra, madeira).
+    -   `"#"`: Parede ou obstáculo intransponível.
+    -   `","`: Grama rala.
+    -   `"*"`: Grama alta ou arbusto.
+    -   `"T"`: Árvore.
+    -   `"~"`: Água.
+    -   `"+"`: Porta (fechada).
+    -   `"'"`: Porta (aberta).
+    -   `">"`: Escada para baixo.
+    -   `"<"`: Escada para cima.
+    -   `"$"`: Tesouro ou item de interesse.
+
+4.  **Ações de Movimento:** O jogador agora se move pelo mapa. Uma ação como "O jogador se move para (10, 5)" significa que você deve verificar o que há naquela coordenada.
+    -   Se for um tile normal (`.`, `,`): Apenas atualize `player.posicao` para (10, 5) e descreva brevemente o movimento.
+    -   Se for um tile interativo (`+`, `>`, `$`, etc.): Execute a ação correspondente (abrir porta, descer escada, pegar item), atualize o estado (incluindo o tile do mapa, ex: `+` vira `'` ), e descreva o resultado.
+    -   Se for a posição de um NPC: Inicie um diálogo.
+    -   Se for um tile de saída (borda do mapa): Carregue a próxima área, gerando um novo mapa.
+
+Esta é uma tarefa CRÍTICA. A consistência entre a narrativa e os dados do mapa 2D é essencial para a experiência do jogador.
 
 
 --- REGRAS GERAIS DE ALTO NÍVEL ---
@@ -483,7 +522,7 @@ Este é um pilar central do mundo. Todos os seres com poder, do jogador aos mons
     * **Classes Ocultas (Desbloqueadas por Feitos Secretos):**
         * **Devorador de Magia:** Adquirida ao sobreviver a um feitiço de nível mítico. Pode consumir mana.
         * **Viajante do Tempo:** Adquirida ao resolver um paradoxo temporal. Pode manipular o fluxo do tempo.
-        * **Forjador de Almas:** Adquirida ao criar um artefato consciente. Pode imbuir itens com almas.
+        - **Forjador de Almas:** Adquirida ao criar um artefato consciente. Pode imbuir itens com almas.
         - **Ceifador:** Adquirida ao derrotar um anjo da morte e tomar seus poderes.
         - **Arquiteto da Realidade:** Adquirida ao dominar uma Super-Habilidade Primordial em seu nível máximo.
 
@@ -542,6 +581,7 @@ Saída obrigatória por turno: Narrativa + JSON state completo.
 ---
 LEMBRETE FINAL: FORMATO É TUDO. NARRATIVA, ENTÃO \`\`\`json. NADA MAIS.
 --- FIM DAS REGRAS. COMECE O JOGO. ---
+*/
 `;
 
 export const ATTRIBUTE_POINTS = 1000;
@@ -606,7 +646,8 @@ export const INITIAL_GAME_STATE: GameState = {
     regiao: "Vale de Aetria",
     perigoGlobal: 0.6,
     eventosRecentes: [],
-    mercados: [{ cidade: "Lúmen", tendencias: { "grão": "escasso", "ferro": "abundante" } }]
+    mercados: [{ cidade: "Lúmen", tendencias: { "grão": "escasso", "ferro": "abundante" } }],
+    map: null
   },
   player: {
     nome: "",
@@ -643,7 +684,8 @@ export const INITIAL_GAME_STATE: GameState = {
         membros: [],
         sinergiaAtiva: false,
         bonus: {}
-    }
+    },
+    posicao: { x: 0, y: 0 }
   },
   companheiros: [],
   construcoes: [],

@@ -1,4 +1,5 @@
 
+
 export enum GamePhase {
   LOADING,
   START_SCREEN,
@@ -148,6 +149,11 @@ export interface Equipment {
   pet_harness: (Item | null)[]; // 3
 }
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface NPC {
   id: string;
   nome: string;
@@ -160,6 +166,7 @@ export interface NPC {
   lealdade?: number;
   classe: string;
   rank: string;
+  posicao?: Position;
 }
 
 export interface CirculoIntimo {
@@ -220,6 +227,7 @@ export interface PlayerState {
   nivel: number;
   nivelInfo: LevelInfo;
   classes: ClassInfo[];
+  posicao: Position;
 }
 
 export interface WorldState {
@@ -227,6 +235,11 @@ export interface WorldState {
   perigoGlobal: number;
   eventosRecentes: string[];
   mercados: { cidade: string; tendencias: Record<string, string> }[];
+  map: {
+    width: number;
+    height: number;
+    tiles: string[][];
+  } | null;
 }
 
 export interface KingdomState {
@@ -413,6 +426,7 @@ export interface Enemy {
   mana?: number;
   mana_max?: number;
   condicoes: (string | Condition)[];
+  posicao?: Position;
 }
 
 export interface CombatState {

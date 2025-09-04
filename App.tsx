@@ -93,16 +93,24 @@ const AppContent: React.FC = () => {
 
   const saveGame = useCallback((stateToSave: GameState, currentTurnHistory: Turn[], currentChatHistory: { role: string, parts: { text: string }[] }[]) => {
     try {
+      // FIX: Truncate history to prevent exceeding localStorage quota.
+      const truncatedTurnHistory = currentTurnHistory.slice(-50);
+      const truncatedChatHistory = currentChatHistory.slice(-100);
+
       const dataToSave = {
         gameState: stateToSave,
-        turnHistory: currentTurnHistory,
-        chatHistory: currentChatHistory
+        turnHistory: truncatedTurnHistory,
+        chatHistory: truncatedChatHistory
       };
       localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(dataToSave));
       setSaveExists(true);
     } catch (error) {
       console.error("Failed to save game:", error);
-      showToast("Falha ao salvar o jogo.");
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.message.includes('quota'))) {
+          showToast("Falha ao salvar: O histórico do jogo excedeu o limite de armazenamento.");
+      } else {
+          showToast("Falha ao salvar o jogo.");
+      }
     }
   }, [showToast]);
 
@@ -283,7 +291,9 @@ ESTADO ATUAL DO JOGO PARA ESTE TURNO:
 ${JSON.stringify(currentState, null, 2)}
 \`\`\`
 `;
-    const historyForApi = [...currentChatHistory, { role: 'user', parts: [{ text: userPromptForApi }] }];
+    // FIX: Truncate chat history for API call to prevent exceeding context window.
+    const truncatedChatHistoryForApi = currentChatHistory.slice(-20); // Keep last 20 messages (10 turns)
+    const historyForApi = [...truncatedChatHistoryForApi, { role: 'user', parts: [{ text: userPromptForApi }] }];
 
     try {
       const responseText = await runGameTurn(historyForApi);
